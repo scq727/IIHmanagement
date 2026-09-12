@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IIH Manager">
+<meta name="theme-color" content="#0d1b2a">
+<title>IIH Manager</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+/* ── Tokens ── */
+:root {
+  --navy:       #0d1b2a;
+  --navy-mid:   #1a2e45;
+  --navy-soft:  #253650;
+  --surface:    #f4f6fa;
+  --card:       #ffffff;
+  --teal:       #087e8b;
+  --teal-light: #e3f4f6;
+  --teal-mid:   #066570;
+  --amber:      #b85c00;
+  --amber-light:#fff0e0;
+  --red:        #a8200d;
+  --red-light:  #fdecea;
+  --green:      #145a3c;
+  --green-light:#e5f5ed;
+  --slate:      #3d4f63;
+  --slate-mid:  #607488;
+  --slate-light:#8fa3b8;
+  --rule:       #dde4ed;
+  --white:      #ffffff;
+  --font:       'Inter', system-ui, -apple-system, sans-serif;
+  --tab-h:      60px;
+  --safe-b:     env(safe-area-inset-bottom, 0px);
+  --safe-t:     env(safe-area-inset-top, 0px);
+  --radius:     10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body { font-family: var(--font); font-size: 15px; background: var(--surface); color: var(--navy); height: 100%; -webkit-text-size-adjust: 100%; overscroll-behavior: none; }
+
+/* ── Shell ── */
+.app { display: flex; flex-direction: column; height: 100dvh; max-width: 430px; margin: 0 auto; background: var(--surface); position: relative; overflow: hidden; }
+
+/* ── Header ── */
+.hdr { background: var(--navy); padding: calc(var(--safe-t) + 12px) 18px 12px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.hdr-title { font-size: 1rem; font-weight: 700; color: var(--white); letter-spacing: -0.02em; }
+.hdr-sub { font-size: 0.65rem; color: rgba(255,255,255,0.38); font-weight: 400; margin-top: 1px; }
+.hdr-spacer { flex: 1; }
+.hdr-btn { background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.6); font-size: 0.75rem; font-family: var(--font); font-weight: 500; padding: 5px 12px; border-radius: 20px; cursor: pointer; }
+.hdr-btn:active { opacity: 0.7; }
+
+/* ── Scroll ── */
+.scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 14px 14px calc(var(--tab-h) + var(--safe-b) + 20px); }
+
+/* ── Tab bar ── */
+.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: calc(var(--tab-h) + var(--safe-b)); background: var(--navy); display: flex; align-items: flex-start; padding-top: 6px; padding-bottom: var(--safe-b); border-top: 1px solid rgba(255,255,255,0.07); z-index: 100; }
+.tb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 2px; background: none; border: none; cursor: pointer; }
+.tb-ic { font-size: 1.2rem; line-height: 1; filter: grayscale(1) opacity(0.35); transition: filter 0.12s; }
+.tb-lb { font-family: var(--font); font-size: 0.58rem; font-weight: 600; color: rgba(255,255,255,0.3); letter-spacing: 0.03em; transition: color 0.12s; white-space: nowrap; }
+.tb.active .tb-ic { filter: none; }
+.tb.active .tb-lb { color: var(--teal); }
+
+/* ── Panels ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Typography ── */
+.sec { font-size: 0.66rem; font-weight: 700; color: var(--slate-light); letter-spacing: 0.08em; text-transform: uppercase; margin: 18px 0 8px; }
+.sec:first-child { margin-top: 2px; }
+
+/* ── Card ── */
+.card { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; border: 1px solid var(--rule); }
+.card-ttl { font-size: 0.75rem; font-weight: 600; color: var(--slate); margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+
+/* ── Alerts ── */
+.al { border-radius: 7px; padding: 10px 12px; font-size: 0.78rem; line-height: 1.5; margin-bottom: 8px; }
+.al:last-child { margin-bottom: 0; }
+.al-r { background: var(--red-light);   border-left: 3px solid var(--red);   color: var(--red); }
+.al-a { background: var(--amber-light); border-left: 3px solid var(--amber); color: var(--amber); }
+.al-g { background: var(--green-light); border-left: 3px solid var(--green); color: var(--green); }
+.al-t { background: var(--teal-light);  border-left: 3px solid var(--teal);  color: var(--teal-mid); }
+.al-lbl { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 5px; display: block; }
+
+/* ── Form ── */
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+.field:last-child { margin-bottom: 0; }
+label { font-size: 0.72rem; font-weight: 600; color: var(--slate); }
+input[type=number], input[type=text], input[type=date], select, textarea {
+  font-family: var(--font); font-size: 0.95rem; font-weight: 500; color: var(--navy);
+  background: var(--surface); border: 1.5px solid var(--rule); border-radius: 7px;
+  padding: 10px 12px; width: 100%; -webkit-appearance: none; transition: border-color 0.1s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--teal); background: var(--white); }
+.hint { font-size: 0.67rem; color: var(--slate-light); }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* ── Buttons ── */
+.btn { font-family: var(--font); font-size: 0.88rem; font-weight: 600; padding: 12px; border-radius: var(--radius); border: none; cursor: pointer; width: 100%; transition: opacity 0.1s, transform 0.08s; letter-spacing: -0.01em; }
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-p { background: var(--teal); color: var(--white); }
+.btn-p:hover:not(:disabled) { background: var(--teal-mid); }
+.btn-g { background: transparent; color: var(--slate); border: 1.5px solid var(--rule); }
+.btn-sm { font-size: 0.75rem; padding: 8px 12px; border-radius: 7px; }
+.btn-d { background: var(--red); color: var(--white); }
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-row .btn { flex: 1; }
+
+/* ── Choice chips ── */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--font); font-size: 0.72rem; font-weight: 500; padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--rule); background: var(--white); color: var(--slate); cursor: pointer; transition: all 0.1s; user-select: none; }
+.chip.on { background: var(--teal-light); border-color: var(--teal); color: var(--teal-mid); }
+
+/* ── Branch buttons ── */
+.br { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 7px; border: 1.5px solid var(--rule); background: var(--white); margin-bottom: 7px; cursor: pointer; transition: all 0.1s; }
+.br:last-child { margin-bottom: 0; }
+.br:active { transform: scale(0.98); }
+.br.on { border-color: var(--teal); background: var(--teal-light); }
+.br.on .br-dot { background: var(--teal); }
+.br.on .br-lb { color: var(--teal-mid); }
+.br.warn-item { border-color: #e0b080; background: #fffaf2; }
+.br.warn-item .br-dot { background: var(--amber); }
+.br-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rule); flex-shrink: 0; margin-top: 5px; transition: background 0.1s; }
+.br-lb { font-size: 0.8rem; font-weight: 500; color: var(--navy); line-height: 1.35; flex: 1; }
+.br-sub { font-size: 0.69rem; color: var(--slate-mid); display: block; margin-top: 2px; }
+
+/* ── Pressure arc ── */
+.meter-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0 4px; }
+.m-svg { width: 190px; height: 105px; }
+.m-num { font-size: 2.6rem; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; line-height: 1; }
+.m-unit { font-size: 0.68rem; color: var(--slate-light); }
+.m-tag { font-size: 0.7rem; font-weight: 700; padding: 3px 11px; border-radius: 20px; letter-spacing: 0.03em; }
+.t-norm { background: var(--green-light); color: var(--green); }
+.t-bord { background: var(--amber-light); color: var(--amber); }
+.t-elev { background: var(--red-light); color: var(--red); }
+.t-none { background: var(--surface); color: var(--slate-light); }
+
+/* ── Tree nodes ── */
+.tree-node { background: var(--card); border: 1px solid var(--rule); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; }
+.tn-hdr { padding: 12px 14px; cursor: pointer; display: flex; align-items: flex-start; gap: 10px; }
+.tn-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.7rem; color: var(--white); flex-shrink: 0; margin-top: 1px; }
+.tn-num.c-navy  { background: var(--navy); }
+.tn-num.c-teal  { background: var(--teal); }
+.tn-num.c-amber { background: var(--amber); }
+.tn-num.c-red   { background: var(--red); }
+.tn-num.c-green { background: var(--green); }
+.tn-q { flex: 1; font-size: 0.84rem; font-weight: 600; color: var(--navy); line-height: 1.35; }
+.tn-chev { font-size: 0.7rem; color: var(--slate-light); transition: transform 0.18s; flex-shrink: 0; margin-top: 3px; }
+.tree-node.open .tn-chev { transform: rotate(180deg); }
+.tn-body { display: none; padding: 0 14px 12px 48px; border-top: 1px solid var(--rule); }
+.tree-node.open .tn-body { display: block; }
+.tn-inner { padding-top: 10px; }
+
+/* ── Node result ── */
+.n-result { margin-top: 10px; padding: 10px 12px; border-radius: 7px; font-size: 0.78rem; line-height: 1.55; }
+.n-result ul { padding-left: 15px; margin-top: 6px; }
+.n-result li { margin-bottom: 3px; }
+.nr-t { background: var(--teal-light); border-left: 3px solid var(--teal); }
+.nr-a { background: var(--amber-light); border-left: 3px solid var(--amber); }
+.nr-r { background: var(--red-light);   border-left: 3px solid var(--red); }
+.nr-g { background: var(--green-light); border-left: 3px solid var(--green); }
+.nr-lbl { font-size: 0.63rem; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 5px; display: block; }
+.nr-t .nr-lbl { color: var(--teal-mid); }
+.nr-a .nr-lbl { color: var(--amber); }
+.nr-r .nr-lbl { color: var(--red); }
+.nr-g .nr-lbl { color: var(--green); }
+
+/* ── Titration table ── */
+.tit-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; margin-top: 4px; }
+.tit-table th { text-align: left; padding: 6px 8px; font-weight: 600; font-size: 0.65rem; color: var(--slate-light); border-bottom: 1px solid var(--rule); }
+.tit-table td { padding: 8px 8px; border-bottom: 1px solid var(--surface); color: var(--slate); vertical-align: top; }
+.tit-table tr.cur td { background: var(--teal-light); color: var(--teal-mid); font-weight: 600; }
+.tit-table tr.cur td:first-child { border-left: 3px solid var(--teal); }
+
+/* ── Accordion (surgical / Frisén) ── */
+.acc { border-radius: var(--radius); border: 1.5px solid var(--rule); overflow: hidden; margin-bottom: 8px; }
+.acc-hdr { padding: 11px 14px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.acc-hdr.red   { background: var(--red-light);   color: var(--red); }
+.acc-hdr.amber { background: var(--amber-light); color: var(--amber); }
+.acc-hdr.teal  { background: var(--teal-light);  color: var(--teal-mid); }
+.acc-hdr.green { background: var(--green-light); color: var(--green); }
+.acc-hdr.navy  { background: var(--navy); color: var(--white); }
+.acc-hdr .acc-chev { margin-left: auto; font-size: 0.7rem; transition: transform 0.18s; }
+.acc.open .acc-chev { transform: rotate(180deg); }
+.acc-body { display: none; padding: 12px 14px; background: var(--white); font-size: 0.77rem; color: var(--slate); line-height: 1.65; }
+.acc.open .acc-body { display: block; }
+.acc-body strong { color: var(--navy); }
+.acc-body ul { padding-left: 15px; margin-top: 5px; }
+.acc-body li { margin-bottom: 4px; }
+.acc-body .divider { height: 1px; background: var(--rule); margin: 10px 0; }
+
+/* ── Monitor grid ── */
+.mon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 8px; }
+.mon-item { background: var(--surface); border-radius: 6px; padding: 9px; }
+.mon-lbl { font-size: 0.62rem; font-weight: 700; color: var(--slate-light); margin-bottom: 3px; }
+.mon-val { font-size: 0.75rem; color: var(--navy); font-weight: 500; line-height: 1.35; }
+
+/* ── Triage ── */
+.tq { margin-bottom: 12px; }
+.tq-lbl { font-size: 0.74rem; font-weight: 600; color: var(--slate); margin-bottom: 5px; }
+.tq-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.topt { font-family: var(--font); font-size: 0.76rem; font-weight: 500; padding: 7px 12px; border-radius: 7px; border: 1.5px solid var(--rule); background: var(--white); color: var(--slate); cursor: pointer; line-height: 1.3; transition: all 0.1s; }
+.topt:active { transform: scale(0.97); }
+.topt.on { background: var(--navy); border-color: var(--navy); color: var(--white); }
+
+/* ── Tracker ── */
+.pt-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.pt-bar input { flex: 1; }
+.visit-card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--rule); margin-bottom: 8px; overflow: hidden; }
+.visit-top { display: flex; align-items: flex-start; padding: 10px 12px; gap: 10px; }
+.visit-date { font-size: 0.72rem; font-weight: 700; color: var(--navy); min-width: 68px; line-height: 1.35; }
+.visit-pills { flex: 1; display: flex; flex-wrap: wrap; gap: 5px; }
+.vpill { font-size: 0.66rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: var(--surface); color: var(--slate); }
+.vpill.hi { background: var(--red-light); color: var(--red); }
+.vpill.lo { background: var(--green-light); color: var(--green); }
+.vpill.warn { background: var(--amber-light); color: var(--amber); }
+.visit-note { padding: 0 12px 9px; font-size: 0.72rem; color: var(--slate-light); }
+
+/* ── Chart canvas ── */
+.chart-wrap { background: var(--card); border-radius: var(--radius); border: 1px solid var(--rule); padding: 12px; margin-bottom: 10px; }
+.chart-ttl { font-size: 0.72rem; font-weight: 600; color: var(--slate); margin-bottom: 8px; }
+canvas { width: 100% !important; max-height: 160px; }
+
+/* ── Reference: monitoring timeline ── */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.tl-item:last-child { border-bottom: none; }
+.tl-dot-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; flex-shrink: 0; width: 32px; }
+.tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--teal); margin-top: 3px; flex-shrink: 0; }
+.tl-time { font-size: 0.65rem; font-weight: 700; color: var(--teal-mid); margin-bottom: 2px; white-space: nowrap; }
+.tl-content { flex: 1; }
+.tl-tests { font-size: 0.75rem; color: var(--navy); font-weight: 500; line-height: 1.4; }
+.tl-note { font-size: 0.68rem; color: var(--slate-mid); margin-top: 3px; line-height: 1.4; }
+
+/* ── Output boxes ── */
+.output-box { background: var(--surface); border: 1px solid var(--rule); border-radius: 7px; padding: 12px; font-size: 0.76rem; line-height: 1.7; color: var(--slate); white-space: pre-wrap; word-break: break-word; margin-top: 10px; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--rule); margin: 10px 0; }
+
+/* ── Big value ── */
+.bigval { font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+.bigval.t { color: var(--teal); }
+.bigval.a { color: var(--amber); }
+.bigval.r { color: var(--red); }
+.val-unit { font-size: 0.68rem; color: var(--slate-light); margin-top: 2px; }
+
+/* ── Spinner ── */
+.spin { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: var(--white); border-radius: 50%; animation: rot 0.7s linear infinite; display: inline-block; vertical-align: middle; margin-right: 6px; }
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+.toast { position: fixed; bottom: calc(var(--tab-h) + var(--safe-b) + 10px); left: 50%; transform: translateX(-50%) translateY(12px); background: var(--navy); color: var(--white); font-size: 0.76rem; font-weight: 500; padding: 8px 16px; border-radius: 20px; opacity: 0; transition: opacity 0.18s, transform 0.18s; z-index: 300; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Modal / About ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 400; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal { background: var(--card); border-radius: 16px 16px 0 0; padding: 20px 20px calc(var(--safe-b) + 20px); width: 100%; max-width: 430px; max-height: 80dvh; overflow-y: auto; transform: translateY(30px); transition: transform 0.22s; }
+.modal-overlay.show .modal { transform: translateY(0); }
+.modal-ttl { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.modal-sub { font-size: 0.78rem; color: var(--slate); line-height: 1.6; }
+.modal-close { width: 100%; background: var(--navy); color: var(--white); border: none; border-radius: 8px; padding: 12px; font-family: var(--font); font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 18px; }
+
+/* ── Disclaimer ── */
+.disc { font-size: 0.64rem; color: var(--slate-light); text-align: center; padding: 8px 0 4px; line-height: 1.5; }
+
+/* ── Empty ── */
+.empty { text-align: center; padding: 30px 16px; color: var(--slate-light); font-size: 0.8rem; }
+.empty-ic { font-size: 1.8rem; margin-bottom: 8px; opacity: 0.4; }
+
+/* ── RNFL delta row ── */
+.delta-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.delta-row:last-child { border-bottom: none; }
+.delta-lbl { font-size: 0.8rem; font-weight: 600; }
+.delta-val { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* ── Onboarding banner ── */
+.onboard { background: var(--navy); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; }
+.onboard-icon { font-size: 1.4rem; flex-shrink: 0; }
+.onboard-text { flex: 1; font-size: 0.78rem; color: rgba(255,255,255,0.8); line-height: 1.5; }
+.onboard-text strong { color: var(--white); }
+.onboard-close { background: rgba(255,255,255,0.12); border: none; color: rgba(255,255,255,0.6); font-size: 0.72rem; font-family: var(--font); padding: 4px 10px; border-radius: 20px; cursor: pointer; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Unit converter badge ── */
+.unit-conv { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 7px; padding: 8px 10px; margin-top: 8px; }
+.unit-conv label { font-size: 0.7rem; color: var(--slate); min-width: 80px; }
+.unit-conv input { flex: 1; max-width: 100px; font-size: 0.85rem; }
+.unit-conv .uc-result { font-size: 0.78rem; font-weight: 600; color: var(--teal-mid); min-width: 80px; }
+
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<div class="hdr">
+  <div>
+    <div class="hdr-title">IIH Manager</div>
+    <div class="hdr-sub">Idiopathic Intracranial Hypertension · Clinical Decision Support</div>
+  </div>
+  <div class="hdr-spacer"></div>
+  <button class="hdr-btn" onclick="showAbout()">About</button>
+</div>
+
+<!-- Scroll area -->
+<div class="scroll" id="scroll">
+
+  <!-- ═══ PANEL: DIAGNOSE ═══ -->
+  <div class="panel active" id="panel-dx">
+
+    <!-- Onboarding banner (first-time only) -->
+    <div class="onboard" id="onboard-dx" style="display:none">
+      <div class="onboard-icon">🔬</div>
+      <div class="onboard-text"><strong>Diagnose tab:</strong> Enter LP opening pressure and check Dandy criteria to classify the diagnosis. OCT RNFL input provides corroborating evidence.</div>
+      <button class="onboard-close" onclick="dismissOnboard('dx')">Got it</button>
+    </div>
+
+    <div class="sec">LP Opening Pressure</div>
+    <div class="card">
+      <div class="meter-wrap">
+        <svg class="m-svg" viewBox="0 0 190 105">
+          <path d="M 18 92 A 77 77 0 0 1 172 92" fill="none" stroke="#dde4ed" stroke-width="13" stroke-linecap="round"/>
+          <path id="mArc" d="M 18 92 A 77 77 0 0 1 18 92" fill="none" stroke="#087e8b" stroke-width="13" stroke-linecap="round"/>
+          <text x="12" y="104" font-family="Inter" font-size="8.5" fill="#8fa3b8">0</text>
+          <text x="91" y="10" font-family="Inter" font-size="8.5" fill="#8fa3b8" text-anchor="middle">250</text>
+          <text x="175" y="104" font-family="Inter" font-size="8.5" fill="#8fa3b8" text-anchor="end">400+</text>
+        </svg>
+        <div class="m-num" id="mNum">—</div>
+        <div class="m-unit">mm H₂O</div>
+        <div class="m-tag t-none" id="mTag">Enter value below</div>
+      </div>
+      <div class="divider"></div>
+      <div class="g2">
+        <div class="field">
+          <label>Opening pressure (mm H₂O)</label>
+          <input type="number" id="op" placeholder="280" min="0" max="600" inputmode="numeric" oninput="updateMeter()">
+        </div>
+        <div class="field">
+          <label>BMI (kg/m²)</label>
+          <input type="number" id="bmi" placeholder="34" min="10" max="80" step="0.1" inputmode="decimal" oninput="updateMeter()">
+        </div>
+      </div>
+      <!-- Unit converter -->
+      <div class="unit-conv">
+        <label>cm H₂O → mm H₂O</label>
+        <input type="number" id="ucIn" placeholder="23" inputmode="decimal" step="0.1" oninput="convertUnit()">
+        <div class="uc-result" id="ucOut">—</div>
+      </div>
+      <!-- BMI calculator -->
+      <div class="divider"></div>
+      <div style="font-size:0.68rem; font-weight:700; color:var(--slate-light); margin-bottom:6px; letter-spacing:0.04em;">BMI CALCULATOR</div>
+      <div class="g2">
+        <div class="field">
+          <label>Height (cm)</label>
+          <input type="number" id="htCm" placeholder="165" inputmode="decimal" oninput="calcBMI()">
+        </div>
+        <div class="field">
+          <label>Weight (kg)</label>
+          <input type="number" id="wtKg" placeholder="95" inputmode="decimal" oninput="calcBMI()">
+        </div>
+      </div>
+      <div id="bmiCalcOut"></div>
+      <div id="opAlert" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="sec">Modified Dandy Criteria <span style="font-weight:400; text-transform:none; letter-spacing:0;">(Friedman 2013)</span></div>
+    <div class="card">
+      <div class="card-ttl">Tap each criterion that is present</div>
+      <div id="dandyList" style="display:flex; flex-direction:column; gap:6px;">
+        <div class="br" data-type="req" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Papilledema present<span class="br-sub">Required — criterion 1 of 5</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--red); flex-shrink:0; margin-top:2px;">REQ</span>
+        </div>
+        <div class="br" data-type="req" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Normal neurological exam<span class="br-sub">CN VI palsy alone is acceptable — criterion 2 of 5</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--red); flex-shrink:0; margin-top:2px;">REQ</span>
+        </div>
+        <div class="br" data-type="req" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Normal neuroimaging<span class="br-sub">No mass, hydrocephalus, or meningeal enhancement — criterion 3 of 5</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--red); flex-shrink:0; margin-top:2px;">REQ</span>
+        </div>
+        <div class="br" data-type="req" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">LP OP ≥250 mm H₂O (≥280 if obese)<span class="br-sub">Criterion 4 of 5</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--red); flex-shrink:0; margin-top:2px;">REQ</span>
+        </div>
+        <div class="br" data-type="req" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Normal CSF composition<span class="br-sub">Criterion 5 of 5 — reference neurology LP report</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--red); flex-shrink:0; margin-top:2px;">REQ</span>
+        </div>
+        <div class="divider"></div>
+        <div class="br" data-type="sup" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Obesity (BMI ≥30)<span class="br-sub">Supportive feature</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--teal-mid); flex-shrink:0; margin-top:2px;">SUP</span>
+        </div>
+        <div class="br" data-type="sup" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Female of reproductive age<span class="br-sub">Supportive feature</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--teal-mid); flex-shrink:0; margin-top:2px;">SUP</span>
+        </div>
+        <div class="br" data-type="sup" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Pulsatile tinnitus<span class="br-sub">Supportive feature</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--teal-mid); flex-shrink:0; margin-top:2px;">SUP</span>
+        </div>
+        <div class="br" data-type="sup" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">Transient visual obscurations (TVOs)<span class="br-sub">Supportive feature</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--teal-mid); flex-shrink:0; margin-top:2px;">SUP</span>
+        </div>
+        <div class="br" data-type="sup" onclick="toggleDandy(this)">
+          <div class="br-dot"></div>
+          <div class="br-lb">MRI: empty sella / globe flattening / TVS stenosis<span class="br-sub">Supportive feature</span></div>
+          <span style="font-size:0.6rem; font-weight:700; color:var(--teal-mid); flex-shrink:0; margin-top:2px;">SUP</span>
+        </div>
+      </div>
+      <div id="dxResult" style="margin-top:10px;"></div>
+      <button class="btn btn-g btn-sm" style="margin-top:10px; color:var(--slate-light);" onclick="resetDandy()" aria-label="Reset all criteria">Reset criteria</button>
+    </div>
+
+    <div class="sec">OCT RNFL — Corroborating Evidence</div>
+    <div class="card">
+      <div class="card-ttl">Not a Dandy criterion — use for corroboration and IIHWOP support</div>
+      <div class="g2">
+        <div class="field">
+          <label>RNFL average OD (µm)</label>
+          <input type="number" id="rnflOD" placeholder="118" inputmode="numeric" oninput="interpRNFL()">
+        </div>
+        <div class="field">
+          <label>RNFL average OS (µm)</label>
+          <input type="number" id="rnflOS" placeholder="122" inputmode="numeric" oninput="interpRNFL()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Context</label>
+        <select id="rnflCtx" onchange="interpRNFL()">
+          <option value="">— select —</option>
+          <option value="new">New diagnosis — no prior OCT</option>
+          <option value="fu">Follow-up — compare to baseline</option>
+          <option value="iihwop">IIHWOP evaluation (no papilledema)</option>
+        </select>
+      </div>
+      <div id="rnflBaseFields" style="display:none;">
+        <div class="g2">
+          <div class="field"><label>Baseline OD (µm)</label><input type="number" id="rBaseOD" placeholder="145" inputmode="numeric" oninput="interpRNFL()"></div>
+          <div class="field"><label>Baseline OS (µm)</label><input type="number" id="rBaseOS" placeholder="138" inputmode="numeric" oninput="interpRNFL()"></div>
+        </div>
+      </div>
+      <div id="rnflResult" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="disc">Friedman et al., Neurology 2013 · Clinical decision support only</div>
+  </div>
+
+  <!-- ═══ PANEL: TRIAGE ═══ -->
+  <div class="panel" id="panel-triage">
+
+    <div class="onboard" id="onboard-triage" style="display:none">
+      <div class="onboard-icon">🚦</div>
+      <div class="onboard-text"><strong>Triage tab:</strong> For first-encounter and less-experienced clinicians. Answer the questions to get urgency routing, then use the differentiator to distinguish true papilledema from pseudopapilledema.</div>
+      <button class="onboard-close" onclick="dismissOnboard('triage')">Got it</button>
+    </div>
+
+    <div class="sec">Papilledema Spotter — First Encounter</div>
+    <div class="card">
+      <div class="card-ttl">Answer each question based on findings today</div>
+
+      <div class="tq"><div class="tq-lbl">Disc elevation laterality</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('lat','bi',this)">Bilateral</button>
+          <button class="topt" onclick="setTriage('lat','uni',this)">Unilateral</button>
+          <button class="topt" onclick="setTriage('lat','none',this)">None seen</button>
+        </div>
+      </div>
+
+      <div class="tq"><div class="tq-lbl">Onset / tempo</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('onset','acute',this)">Acute (&lt;72 h)</button>
+          <button class="topt" onclick="setTriage('onset','sub',this)">Subacute (days–wks)</button>
+          <button class="topt" onclick="setTriage('onset','chron',this)">Chronic / incidental</button>
+        </div>
+      </div>
+
+      <div class="tq"><div class="tq-lbl">Visual acuity (worse eye)</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('va','sev',this)">&lt;20/200</button>
+          <button class="topt" onclick="setTriage('va','mod',this)">20/40–20/200</button>
+          <button class="topt" onclick="setTriage('va','good',this)">20/40 or better</button>
+        </div>
+      </div>
+
+      <div class="tq"><div class="tq-lbl">Associated neurological symptoms</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('neuro','focal',this)">Focal deficit / new diplopia</button>
+          <button class="topt" onclick="setTriage('neuro','ha',this)">Headache only</button>
+          <button class="topt" onclick="setTriage('neuro','none',this)">No neuro symptoms</button>
+        </div>
+      </div>
+
+      <div class="tq"><div class="tq-lbl">Prior IIH workup?</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('wu','yes',this)">Yes — confirmed IIH on Rx</button>
+          <button class="topt" onclick="setTriage('wu','prior',this)">Prior workup, no dx</button>
+          <button class="topt" onclick="setTriage('wu','no',this)">No prior workup</button>
+        </div>
+      </div>
+
+      <div class="tq"><div class="tq-lbl">Patient age group</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('age','ped',this)" aria-label="Pediatric">Pediatric (&lt;18)</button>
+          <button class="topt" onclick="setTriage('age','adult',this)" aria-label="Adult">Adult (18+)</button>
+        </div>
+      </div>
+
+      <div class="tq"><div class="tq-lbl">Blood pressure checked today?</div>
+        <div class="tq-opts">
+          <button class="topt" onclick="setTriage('bp','htn',this)">Severely elevated (&gt;180/120)</button>
+          <button class="topt" onclick="setTriage('bp','ok',this)">Normal / mildly elevated</button>
+          <button class="topt" onclick="setTriage('bp','unk',this)">Not checked</button>
+        </div>
+      </div>
+
+      <div id="triageOut" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="sec">Pseudopapilledema Differentiator</div>
+    <div class="card">
+      <div class="card-ttl">Tap all exam and imaging features present</div>
+      <div style="font-size:0.69rem; font-weight:600; color:var(--teal-mid); margin-bottom:6px; letter-spacing:0.04em;">FEATURES FAVORING TRUE PAPILLEDEMA</div>
+      <div id="trueList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
+        <div class="br" onclick="togglePseudo(this,'rnfl_thick')"><div class="br-dot"></div><div class="br-lb">OCT RNFL thickened (&gt;120 µm avg)<span class="br-sub">Most specific OCT finding for true disc edema</span></div></div>
+        <div class="br" onclick="togglePseudo(this,'no_svp')"><div class="br-dot"></div><div class="br-lb">No spontaneous venous pulsations (SVP absent)<span class="br-sub">SVP absent suggests ICP &gt;200 mm H₂O in most cases</span></div></div>
+        <div class="br" onclick="togglePseudo(this,'hem')"><div class="br-dot"></div><div class="br-lb">Peripapillary flame hemorrhages<span class="br-sub">Strong indicator of true disc edema</span></div>
+        </div>
+        <div class="br" onclick="togglePseudo(this,'bilateral')"><div class="br-dot"></div><div class="br-lb">Bilateral symmetric disc elevation</div></div>
+        <div class="br" onclick="togglePseudo(this,'af_neg')"><div class="br-dot"></div><div class="br-lb">Autofluorescence negative (no drusen signal)<span class="br-sub">Absence of AF signal argues against buried drusen</span></div></div>
+        <div class="br" onclick="togglePseudo(this,'bscan_neg')"><div class="br-dot"></div><div class="br-lb">B-scan: elevation confirmed, no hyperreflective nodules</div></div>
+        <div class="br" onclick="togglePseudo(this,'symptomatic')"><div class="br-dot"></div><div class="br-lb">Symptomatic: headache, TVOs, pulsatile tinnitus</div></div>
+        <div class="br" onclick="togglePseudo(this,'risk_factors')"><div class="br-dot"></div><div class="br-lb">IIH risk factors: obesity, female, reproductive age</div></div>
+      </div>
+      <div style="font-size:0.69rem; font-weight:600; color:var(--amber); margin-bottom:6px; letter-spacing:0.04em;">FEATURES FAVORING PSEUDOPAPILLEDEMA</div>
+      <div id="falseList" style="display:flex; flex-direction:column; gap:6px;">
+        <div class="br warn-item" onclick="togglePseudo(this,'af_pos')"><div class="br-dot"></div><div class="br-lb">Autofluorescence POSITIVE — disc drusen signal<span class="br-sub">High specificity for disc drusen</span></div></div>
+        <div class="br warn-item" onclick="togglePseudo(this,'bscan_pos')"><div class="br-dot"></div><div class="br-lb">B-scan: hyperreflective nodules at disc (buried drusen)</div></div>
+        <div class="br warn-item" onclick="togglePseudo(this,'svp_present')"><div class="br-dot"></div><div class="br-lb">Spontaneous venous pulsations PRESENT<span class="br-sub">Suggests ICP is not significantly elevated</span></div></div>
+        <div class="br warn-item" onclick="togglePseudo(this,'small_cup')"><div class="br-dot"></div><div class="br-lb">Absent or very small cup (C/D &lt;0.1)<span class="br-sub">Crowded disc may appear elevated without true edema</span></div></div>
+        <div class="br warn-item" onclick="togglePseudo(this,'asym')"><div class="br-dot"></div><div class="br-lb">Asymmetric elevation (one eye markedly more)</div></div>
+        <div class="br warn-item" onclick="togglePseudo(this,'asymptomatic')"><div class="br-dot"></div><div class="br-lb">Completely asymptomatic — incidental finding</div></div>
+      </div>
+      <div id="pseudoOut" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="sec">Secondary Causes Checklist</div>
+    <div class="card">
+      <div class="card-ttl">Ask these in the room — tap if present</div>
+      <div id="secList" style="display:flex; flex-direction:column; gap:6px;">
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Doxycycline / minocycline</strong><span class="br-sub">Started in last 6 months? Acne, Lyme, rosacea, SIBO treatment</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Vitamin A / retinoids</strong><span class="br-sub">Isotretinoin, tretinoin, high-dose vitamin A supplements</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Corticosteroid withdrawal</strong><span class="br-sub">Recently tapered or abruptly stopped oral/inhaled steroids</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Levonorgestrel IUD</strong><span class="br-sub">Mirena or similar — association is biologically plausible but not confirmed in controlled studies (De Lott et al., 2023). Document use; do not reflexively remove without broader clinical context</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Growth hormone therapy</strong><span class="br-sub">Current or recent GH treatment</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Lithium</strong><span class="br-sub">Current psychiatric medication</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Sleep apnea (OSA)</strong><span class="br-sub">Diagnosed or suspected — snoring, daytime somnolence</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Thyroid dysfunction</strong><span class="br-sub">Hypo- or hyperthyroid; on thyroid medication</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Iron deficiency anemia</strong><span class="br-sub">Especially in pediatric or adolescent patients</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Chronic kidney disease</strong><span class="br-sub">Known CKD or elevated baseline creatinine</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on'); calcSecondary()"><div class="br-dot"></div><div class="br-lb"><strong>Venous thrombosis risk / CVT</strong><span class="br-sub">Prior DVT/PE, clotting disorder, thrombophilia, combined OCP use — OCP is a CVT risk factor, not a confirmed direct IIH cause. MRV mandatory to exclude cerebral venous sinus thrombosis</span></div></div>
+      </div>
+      <div id="secOut" style="margin-top:10px;"></div>
+    </div>
+    <div class="disc">Triage output is decision support, not a diagnosis. Clinical judgment required.</div>
+  </div>
+
+  <!-- ═══ PANEL: TREATMENT ═══ -->
+  <div class="panel" id="panel-tx">
+
+    <div class="onboard" id="onboard-tx" style="display:none">
+      <div class="onboard-icon">💊</div>
+      <div class="onboard-text"><strong>Treatment tab:</strong> Walk through the first-line decision tree, calculate acetazolamide dose, manage side effects, assess RNFL surgical threshold, and review escalation options.</div>
+      <button class="onboard-close" onclick="dismissOnboard('tx')">Got it</button>
+    </div>
+
+    <div class="sec">First-Line Treatment — Decision Tree</div>
+
+    <div class="tree-node open" id="tn1">
+      <div class="tn-hdr" onclick="toggleNode('tn1')">
+        <div class="tn-num c-red">1</div>
+        <div class="tn-q">Is vision acutely threatened right now?</div>
+        <div class="tn-chev">▾</div>
+      </div>
+      <div class="tn-body"><div class="tn-inner">
+        <div class="br" onclick="selectBr(this,'tn1','yes')"><div class="br-dot"></div><div class="br-lb">Yes — VA &lt;20/200, dense VF defect, or Grade 3–4 disc edema</div></div>
+        <div class="br" onclick="selectBr(this,'tn1','no')"><div class="br-dot"></div><div class="br-lb">No — VA 20/40 or better, mild-moderate papilledema</div></div>
+        <div id="r-tn1"></div>
+      </div></div>
+    </div>
+
+    <div class="tree-node" id="tn2">
+      <div class="tn-hdr" onclick="toggleNode('tn2')">
+        <div class="tn-num c-amber">2</div>
+        <div class="tn-q">Pregnancy or planning to conceive?</div>
+        <div class="tn-chev">▾</div>
+      </div>
+      <div class="tn-body"><div class="tn-inner">
+        <div class="br" onclick="selectBr(this,'tn2','preg')"><div class="br-dot"></div><div class="br-lb">Currently pregnant (any trimester)</div></div>
+        <div class="br" onclick="selectBr(this,'tn2','ttc')"><div class="br-dot"></div><div class="br-lb">Attempting to conceive or possibility of pregnancy</div></div>
+        <div class="br" onclick="selectBr(this,'tn2','no')"><div class="br-dot"></div><div class="br-lb">Not pregnant, not planning pregnancy</div></div>
+        <div id="r-tn2"></div>
+      </div></div>
+    </div>
+
+    <div class="tree-node" id="tn3">
+      <div class="tn-hdr" onclick="toggleNode('tn3')">
+        <div class="tn-num c-amber">3</div>
+        <div class="tn-q">Sulfonamide allergy?</div>
+        <div class="tn-chev">▾</div>
+      </div>
+      <div class="tn-body"><div class="tn-inner">
+        <div class="br" onclick="selectBr(this,'tn3','yes')"><div class="br-dot"></div><div class="br-lb">Yes — documented sulfonamide / sulfa allergy</div></div>
+        <div class="br" onclick="selectBr(this,'tn3','no')"><div class="br-dot"></div><div class="br-lb">No known allergy</div></div>
+        <div id="r-tn3"></div>
+      </div></div>
+    </div>
+
+    <div class="tree-node" id="tn4">
+      <div class="tn-hdr" onclick="toggleNode('tn4')">
+        <div class="tn-num c-teal">4</div>
+        <div class="tn-q">Estimated GFR?</div>
+        <div class="tn-chev">▾</div>
+      </div>
+      <div class="tn-body"><div class="tn-inner">
+        <div class="br" onclick="selectBr(this,'tn4','norm')"><div class="br-dot"></div><div class="br-lb">≥60 mL/min — normal or mildly reduced</div></div>
+        <div class="br" onclick="selectBr(this,'tn4','mod')"><div class="br-dot"></div><div class="br-lb">30–59 mL/min — moderately reduced</div></div>
+        <div class="br" onclick="selectBr(this,'tn4','low')"><div class="br-dot"></div><div class="br-lb">&lt;30 mL/min — severely reduced</div></div>
+        <div id="r-tn4"></div>
+      </div></div>
+    </div>
+
+    <div class="tree-node" id="tn5">
+      <div class="tn-hdr" onclick="toggleNode('tn5')">
+        <div class="tn-num c-teal">5</div>
+        <div class="tn-q">Current vision risk?</div>
+        <div class="tn-chev">▾</div>
+      </div>
+      <div class="tn-body"><div class="tn-inner">
+        <div class="br" onclick="selectBr(this,'tn5','low')"><div class="br-dot"></div><div class="br-lb">Low — VA 20/40+, mild VF loss, Grade 1–2 disc edema</div></div>
+        <div class="br" onclick="selectBr(this,'tn5','mod')"><div class="br-dot"></div><div class="br-lb">Moderate — VA 20/40–20/200 or moderate VF defect</div></div>
+        <div id="r-tn5"></div>
+      </div></div>
+    </div>
+
+    <div class="sec">Acetazolamide — Dose Calculator</div>
+    <div class="card">
+      <div class="card-ttl">IIHTT weight-based titration protocol</div>
+      <div class="g2">
+        <div class="field"><label>Weight (kg)</label><input type="number" id="txWt" placeholder="95" inputmode="decimal" oninput="calcTx()"></div>
+        <div class="field"><label>Current dose (mg/d)</label><input type="number" id="txCur" placeholder="1000" step="250" inputmode="numeric" oninput="calcTx()"></div>
+      </div>
+      <div class="g3">
+        <div class="field"><label>SCr (mg/dL)</label><input type="number" id="txScr" placeholder="0.9" step="0.1" inputmode="decimal" oninput="calcTx()"></div>
+        <div class="field"><label>Age (years)</label><input type="number" id="txAge" placeholder="35" inputmode="numeric" oninput="calcTx()"></div>
+        <div class="field"><label>Strategy</label>
+          <select id="txStrat" onchange="calcTx()">
+            <option value="iihtt">IIHTT (max 4 g/d)</option>
+            <option value="std">Standard (max 2 g/d)</option>
+            <option value="low">Low dose (max 1 g/d)</option>
+          </select>
+        </div>
+      </div>
+      <div id="txOut"></div>
+    </div>
+
+    <div class="sec">Weight Management</div>
+    <div class="card">
+      <div class="card-ttl">Weight loss is a primary treatment — not adjunctive</div>
+      <div style="font-size:0.78rem; color:var(--slate); line-height:1.7; margin-bottom:10px;">
+        A 10% reduction in body weight is associated with significant reduction in LP OP and papilledema grade. Weight loss is the only treatment with potential for disease remission without medication.
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="br on"><div class="br-dot" style="background:var(--teal);"></div><div class="br-lb">Counsel on 10% weight loss target at every visit<span class="br-sub">Even modest loss (5–10 kg) can reduce papilledema within weeks</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on')" aria-label="Weight management referral"><div class="br-dot"></div><div class="br-lb">Refer to weight management clinic<span class="br-sub">Structured program outperforms advice alone — place referral today if not enrolled</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on')" aria-label="GLP-1 consideration"><div class="br-dot"></div><div class="br-lb">Consider GLP-1 agonist (semaglutide, liraglutide)<span class="br-sub">Emerging evidence for ICP reduction beyond weight loss alone; check insurance coverage</span></div></div>
+        <div class="br" onclick="this.classList.toggle('on')" aria-label="Bariatric surgery"><div class="br-dot"></div><div class="br-lb">Bariatric surgery referral for BMI ≥40 or ≥35 with comorbidities<span class="br-sub">Most durable weight loss intervention — can produce IIH remission</span></div></div>
+      </div>
+    </div>
+
+    <div class="sec">LP Timing — Decision Tool</div>
+    <div class="card">
+      <div class="card-ttl">Three questions to answer before closing the note</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; margin-bottom:12px;">
+        <div style="background:var(--red-light); border-radius:8px; padding:10px; cursor:pointer;" onclick="showLPQ('threat')" id="lpq-threat">
+          <div style="font-size:0.7rem; font-weight:700; color:var(--red); margin-bottom:4px;">Q1</div>
+          <div style="font-size:0.77rem; font-weight:600; color:var(--red); line-height:1.35;">Vision threatened now?</div>
+          <div style="font-size:0.68rem; color:var(--red); margin-top:4px; opacity:0.8;">→ Therapeutic LP immediately</div>
+        </div>
+        <div style="background:var(--amber-light); border-radius:8px; padding:10px; cursor:pointer;" onclick="showLPQ('dx')" id="lpq-dx">
+          <div style="font-size:0.7rem; font-weight:700; color:var(--amber); margin-bottom:4px;">Q2</div>
+          <div style="font-size:0.77rem; font-weight:600; color:var(--amber); line-height:1.35;">Diagnosis confirmed with current OP?</div>
+          <div style="font-size:0.68rem; color:var(--amber); margin-top:4px; opacity:0.8;">→ Diagnostic LP needed</div>
+        </div>
+        <div style="background:var(--teal-light); border-radius:8px; padding:10px; cursor:pointer;" onclick="showLPQ('fail')" id="lpq-fail">
+          <div style="font-size:0.7rem; font-weight:700; color:var(--teal-mid); margin-bottom:4px;">Q3</div>
+          <div style="font-size:0.77rem; font-weight:600; color:var(--teal-mid); line-height:1.35;">Medical management failing?</div>
+          <div style="font-size:0.68rem; color:var(--teal-mid); margin-top:4px; opacity:0.8;">→ Therapeutic LP as bridge</div>
+        </div>
+      </div>
+      <div id="lpqOut"></div>
+    </div>
+
+    <div class="sec">Side Effect Management</div>
+    <div class="card">
+      <div class="card-ttl">Tap the side effect(s) present</div>
+      <div style="display:flex; flex-direction:column; gap:6px;" id="seList">
+        <div class="br" onclick="toggleSE(this,'paresth')"><div class="br-dot"></div><div class="br-lb">Paresthesias (hands / feet)</div></div>
+        <div class="br" onclick="toggleSE(this,'dysgeusia')"><div class="br-dot"></div><div class="br-lb">Dysgeusia — metallic taste / carbonated drinks</div></div>
+        <div class="br" onclick="toggleSE(this,'fatigue')"><div class="br-dot"></div><div class="br-lb">Fatigue / cognitive slowing</div></div>
+        <div class="br" onclick="toggleSE(this,'hypoK')"><div class="br-dot"></div><div class="br-lb">Hypokalemia — K⁺ &lt;3.5 mEq/L</div></div>
+        <div class="br" onclick="toggleSE(this,'acidosis')"><div class="br-dot"></div><div class="br-lb">Metabolic acidosis — HCO₃⁻ &lt;18 mEq/L</div></div>
+        <div class="br" onclick="toggleSE(this,'stones')"><div class="br-dot"></div><div class="br-lb">Nephrolithiasis / flank pain</div></div>
+        <div class="br" onclick="toggleSE(this,'allergy')"><div class="br-dot"></div><div class="br-lb">Hypersensitivity — rash / allergic reaction</div></div>
+      </div>
+      <div id="seOut" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="sec">RNFL — Surgical Escalation Threshold</div>
+    <div class="card">
+      <div class="card-ttl">Compare baseline to current OCT — flags &gt;5 µm thinning</div>
+      <div class="g2">
+        <div class="field"><label>Baseline OD (µm)</label><input type="number" id="sBaseOD" placeholder="145" inputmode="numeric" oninput="calcDelta()"></div>
+        <div class="field"><label>Current OD (µm)</label><input type="number" id="sCurrOD" placeholder="118" inputmode="numeric" oninput="calcDelta()"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Baseline OS (µm)</label><input type="number" id="sBaseOS" placeholder="138" inputmode="numeric" oninput="calcDelta()"></div>
+        <div class="field"><label>Current OS (µm)</label><input type="number" id="sCurrOS" placeholder="110" inputmode="numeric" oninput="calcDelta()"></div>
+      </div>
+      <div id="deltaOut" style="margin-top:8px;"></div>
+      <div class="hint" style="margin-top:6px;">Baseline = first visit OCT (edematous). Thinning &gt;5 µm regardless of absolute value = surgical escalation criterion met.</div>
+    </div>
+
+    <div class="sec">Surgical Escalation</div>
+    <div class="acc" id="ac-ind"><div class="acc-hdr red" onclick="toggleAcc('ac-ind')"><span>⚠</span> Indications for surgical escalation<div class="acc-chev">▾</div></div>
+      <div class="acc-body"><strong>Any one criterion warrants surgical referral discussion:</strong><ul>
+        <li>VA &lt;20/200 despite ≥4 weeks maximal medical therapy</li>
+        <li>Progressive VF loss threatening fixation on serial HVF</li>
+        <li>RNFL thinning &gt;5 µm from baseline on serial OCT</li>
+        <li>Fulminant IIH at presentation (Grade 4–5 disc edema, acute vision loss)</li>
+        <li>Intolerance to all medical therapies with persistent vision risk</li>
+        <li>Failure of serial therapeutic LPs to maintain ICP control</li>
+      </ul></div>
+    </div>
+
+    <div class="acc" id="ac-onsf"><div class="acc-hdr amber" onclick="toggleAcc('ac-onsf')"><span>👁</span> ONSF — Optic Nerve Sheath Fenestration<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Prefer when:</strong> Vision loss is primary; headache secondary or absent · Unilateral or asymmetric loss · Pregnancy (vision-threatening) · Prior shunt failure
+        <div class="divider"></div>
+        <strong>Mechanism:</strong> Decompresses optic nerve subarachnoid space locally. Does not reliably reduce systemic ICP — headache may persist or recur.
+        <div class="divider"></div>
+        <strong>Post-op monitoring:</strong>
+        <div class="mon-grid">
+          <div class="mon-item"><div class="mon-lbl">1 WEEK</div><div class="mon-val">VA, confrontation VF, disc exam, diplopia check</div></div>
+          <div class="mon-item"><div class="mon-lbl">1 MONTH</div><div class="mon-val">VA, formal HVF 24-2, OCT RNFL vs. pre-op</div></div>
+          <div class="mon-item"><div class="mon-lbl">3 MONTHS</div><div class="mon-val">Full reassessment; RNFL trend from pre-op baseline</div></div>
+          <div class="mon-item"><div class="mon-lbl">ANNUAL</div><div class="mon-val">OCT RNFL trend; reassess ICP control; photo comparison</div></div>
+        </div>
+        <div class="divider"></div>
+        <strong>Failure criteria:</strong> No VA/VF improvement at 4–6 weeks, or recurrent vision loss after initial improvement → repeat ONSF vs. CSF diversion.
+        <div class="divider"></div>
+        <strong>Complications:</strong> Diplopia (superior oblique), pupillary asymmetry, CSF leak, infection, worsening vision (rare, &lt;1%).
+      </div>
+    </div>
+
+    <div class="acc" id="ac-shunt"><div class="acc-hdr amber" onclick="toggleAcc('ac-shunt')"><span>🧠</span> CSF Shunting — LP or VP Shunt<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Prefer when:</strong> Headache is primary disabling symptom · Bilateral severe vision loss · Failed ONSF · Need ongoing ICP monitoring via programmable valve
+        <div class="divider"></div>
+        <strong>LP vs. VP shunt:</strong> LP shunt is less invasive and preferred first-line at many centers; VP shunt may have lower long-term revision rates. Neurosurgery preference and body habitus guide choice.
+        <div class="divider"></div>
+        <strong>Post-op monitoring:</strong>
+        <div class="mon-grid">
+          <div class="mon-item"><div class="mon-lbl">2 WEEKS</div><div class="mon-val">Headache response, wound, new neuro symptoms</div></div>
+          <div class="mon-item"><div class="mon-lbl">1 MONTH</div><div class="mon-val">VA, HVF, disc exam; LP OP if symptoms persist</div></div>
+          <div class="mon-item"><div class="mon-lbl">3 MONTHS</div><div class="mon-val">Full ophthalmic reassessment; OCT RNFL trend</div></div>
+          <div class="mon-item"><div class="mon-lbl">ANNUAL</div><div class="mon-val">Shunt function review; low threshold for imaging if symptoms recur</div></div>
+        </div>
+        <div class="divider"></div>
+        <strong>Failure modes:</strong><ul>
+          <li><strong>Obstruction</strong> (most common) — recurrent headache, vision loss → shunt series CT/MRI</li>
+          <li><strong>Over-drainage</strong> — positional headache worse upright → programmable valve adjustment</li>
+          <li><strong>Infection</strong> — fever, meningismus → emergency neurosurgery referral</li>
+          <li><strong>Migration</strong> — confirmed on imaging → neurosurgical revision</li>
+        </ul>
+        <div class="divider"></div>
+        <strong>Revision rate:</strong> LP shunts ~50% at 5 years; VP shunts ~30–40%. Counsel patients.
+      </div>
+    </div>
+
+    <div class="acc" id="ac-tvs"><div class="acc-hdr teal" onclick="toggleAcc('ac-tvs')"><span>🩸</span> TVS Stenting — Venous Sinus Stenting<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Consider when:</strong> Bilateral transverse sinus stenosis on MRV · High venous pressure gradient (≥8 mmHg on venography) · Failed / intolerant to medical therapy · Younger patient, prefer to avoid shunt
+        <div class="divider"></div>
+        <strong>Refer to:</strong> Neuro-interventional radiology. Diagnostic cerebral venography required first to confirm gradient and guide stent sizing.
+        <div class="divider"></div>
+        <strong>Antiplatelet therapy:</strong> Aspirin + clopidogrel ×3–6 months post-stent, then aspirin indefinitely. Confirm regimen with neuro-IR team.
+        <div class="divider"></div>
+        <strong>Post-procedure monitoring:</strong>
+        <div class="mon-grid">
+          <div class="mon-item"><div class="mon-lbl">1 MONTH</div><div class="mon-val">VA, HVF, disc exam; headache response; antiplatelet compliance</div></div>
+          <div class="mon-item"><div class="mon-lbl">3 MONTHS</div><div class="mon-val">Full ophthalmic assessment; OCT RNFL vs. baseline</div></div>
+          <div class="mon-item"><div class="mon-lbl">6 MONTHS</div><div class="mon-val">MRV for stent patency; LP OP if symptoms persist</div></div>
+          <div class="mon-item"><div class="mon-lbl">ANNUAL</div><div class="mon-val">Long-term patency; antiplatelet review</div></div>
+        </div>
+        <div class="divider"></div>
+        <strong>Failure modes:</strong><ul>
+          <li><strong>In-stent restenosis</strong> — recurrent symptoms; MRV confirms → repeat venography ± re-stenting</li>
+          <li><strong>Incomplete ICP reduction</strong> — partial correction; consider additional therapy or shunt</li>
+          <li><strong>Stent thrombosis</strong> (rare) — neurological deterioration → emergency neuro-IR</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="acc" id="ac-dec"><div class="acc-hdr green" onclick="toggleAcc('ac-dec')"><span>⚖️</span> ONSF vs. Shunt vs. TVS — Decision Summary<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; font-size:0.71rem;">
+          <div style="background:var(--amber-light); border-radius:7px; padding:9px;"><div style="font-weight:700; color:var(--amber); margin-bottom:5px;">ONSF</div><div style="color:var(--slate); line-height:1.55;">Vision primary<br>Asymmetric loss<br>Pregnancy<br>Prior shunt fail</div></div>
+          <div style="background:var(--teal-light); border-radius:7px; padding:9px;"><div style="font-weight:700; color:var(--teal-mid); margin-bottom:5px;">Shunt</div><div style="color:var(--slate); line-height:1.55;">Headache primary<br>Bilateral loss<br>Failed ONSF<br>Need ICP ctrl</div></div>
+          <div style="background:var(--green-light); border-radius:7px; padding:9px;"><div style="font-weight:700; color:var(--green); margin-bottom:5px;">TVS</div><div style="color:var(--slate); line-height:1.55;">MRV stenosis<br>High gradient<br>Younger pt<br>Avoid shunt</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="disc">Treatment decisions require multidisciplinary input. IIHTT / NORDIC IIH guidelines referenced.</div>
+  </div>
+
+  <!-- ═══ PANEL: TRACKER ═══ -->
+  <div class="panel" id="panel-tracker">
+
+    <div class="onboard" id="onboard-tracker" style="display:none">
+      <div class="onboard-icon">📈</div>
+      <div class="onboard-text"><strong>Tracker tab:</strong> Log visits for each anonymous patient. The app stores data locally on this device — no PHI leaves your phone. Trend charts update automatically as you add visits.</div>
+      <button class="onboard-close" onclick="dismissOnboard('tracker')">Got it</button>
+    </div>
+
+    <div class="sec">Patient</div>
+    <div class="pt-bar">
+      <input type="text" id="ptId" placeholder="Patient ID (e.g. IIH-001)" oninput="loadPt()" aria-label="Patient ID">
+      <button class="btn btn-p btn-sm" style="width:auto; white-space:nowrap;" onclick="newPt()" aria-label="New patient">+ New</button>
+      <button class="btn btn-g btn-sm" style="width:auto; white-space:nowrap;" onclick="showPtList()" aria-label="Patient list">List</button>
+    </div>
+    <div id="ptListOut"></div>
+    <div id="trackerContent">
+      <div class="empty"><div class="empty-ic">📋</div>Enter a patient ID above to begin</div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL: REFERENCE ═══ -->
+  <div class="panel" id="panel-ref">
+
+    <div class="onboard" id="onboard-ref" style="display:none">
+      <div class="onboard-icon">📖</div>
+      <div class="onboard-text"><strong>Reference tab:</strong> Frisén grading guide, monitoring timeline, referral letter generator, and patient summary generator — all for use at the point of care.</div>
+      <button class="onboard-close" onclick="dismissOnboard('ref')">Got it</button>
+    </div>
+
+    <div class="sec">Frisén Scale — Papilledema Grading</div>
+    <div class="acc" id="fr0"><div class="acc-hdr green" onclick="toggleAcc('fr0')"><span>●</span> Grade 0 — Normal<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Key features:</strong> Sharp disc margins 360°. Normal NFL reflex temporal. Normal C/D ratio. No elevation.<br><br>
+        <strong>OCT RNFL:</strong> Within normal limits. Use as your baseline for all future comparisons.<br><br>
+        <strong>Clinical note:</strong> Document disc photos at diagnosis and every visit. Grade 0 on treatment = treatment success endpoint.
+      </div>
+    </div>
+    <div class="acc" id="fr1"><div class="acc-hdr green" onclick="toggleAcc('fr1')"><span>●</span> Grade 1 — Minimal<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Key features:</strong> C-shaped halo of blurred NFL at nasal pole. Temporal margin sharp. No visible elevation on casual inspection. Easy to miss.<br><br>
+        <strong>OCT RNFL:</strong> Mildly thickened nasally. May fall within "normal" range on some instruments — compare to prior scan.<br><br>
+        <strong>Pitfall:</strong> Most commonly missed grade. If uncertain between Grade 0 and Grade 1, photograph and refer — never dismiss. Peripapillary OCT is more sensitive than clinical exam at this grade.
+      </div>
+    </div>
+    <div class="acc" id="fr2"><div class="acc-hdr amber" onclick="toggleAcc('fr2')"><span>●</span> Grade 2 — Low degree<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Key features:</strong> Circumferential halo of blurred NFL 360°. Nasal border clearly elevated. Temporal margin still relatively sharp. No major vessel obscuration at disc margin.<br><br>
+        <strong>OCT RNFL:</strong> Clearly thickened (&gt;120 µm average expected).<br><br>
+        <strong>Clinical note:</strong> Most common grade at IIH presentation. Vision typically preserved (20/40 or better). Most patients at this grade respond to medical therapy. Begin acetazolamide and weight management.
+      </div>
+    </div>
+    <div class="acc" id="fr3"><div class="acc-hdr amber" onclick="toggleAcc('fr3')"><span>●</span> Grade 3 — Moderate<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Key features:</strong> Disc elevation with obscuration of one or more segments of major vessels at the disc margin. NFL halo 360°. Paton lines (concentric peripapillary retinal folds) may appear.<br><br>
+        <strong>OCT RNFL:</strong> Markedly thickened with significant elevation artifact on peripapillary scan.<br><br>
+        <strong>Clinical action:</strong> Formal HVF 24-2 urgently. MRI/MRV if not done. Start or escalate acetazolamide at this visit — do not defer. Follow up in 4–6 weeks, not 3 months.
+      </div>
+    </div>
+    <div class="acc" id="fr4"><div class="acc-hdr red" onclick="toggleAcc('fr4')"><span>●</span> Grade 4 — Marked<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Key features:</strong> Complete obscuration of a major vessel segment on the disc surface. Prominent disc surface elevation. Flame hemorrhages. Paton lines.<br><br>
+        <strong>OCT RNFL:</strong> Severely thickened; segmentation artifacts common — interpret with caution.<br><br>
+        <strong>Clinical action:</strong> Same-day urgent referral or ER routing. Therapeutic LP at this visit if VA declining. Begin acetazolamide immediately unless contraindicated. Low threshold for ONSF/shunt referral.<br><br>
+        <strong>Do not:</strong> Send this patient home without a concrete plan. Grade 4 with good VA today can progress to severe loss within days.
+      </div>
+    </div>
+    <div class="acc" id="fr5"><div class="acc-hdr red" onclick="toggleAcc('fr5')"><span>●</span> Grade 5 — Severe / Fulminant<div class="acc-chev">▾</div></div>
+      <div class="acc-body">
+        <strong>Key features:</strong> Dome-shaped disc protrusion. Complete vessel obscuration. Extensive hemorrhages, exudates. Macular edema possible. Retinal folds extending into macula.<br><br>
+        <strong>Clinical action:</strong> Emergency. Same-day therapeutic LP and emergent neurosurgery / neuro-ophthalmology consultation. Direct ER referral with your clinical note if specialist unavailable today. IV acetazolamide if oral not possible.<br><br>
+        <strong>Note:</strong> Some centers use Frisén Grade 4 as the maximum. IIHTT used a modified 0–5 scale. Confirm grading convention with your referral center.
+      </div>
+    </div>
+
+    <div class="sec">Monitoring Timeline</div>
+    <div class="card">
+      <div class="timeline">
+        <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-time">BASELINE</div><div class="tl-dot"></div></div><div class="tl-content"><div class="tl-tests">VA · Color vision · HVF 24-2 · OCT RNFL · Disc photos · BMI · LP OP</div><div class="tl-note">Document everything before treatment starts — this is your comparison baseline</div></div></div>
+        <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-time">4–6 WKS</div><div class="tl-dot"></div></div><div class="tl-content"><div class="tl-tests">VA · Disc exam · BMI · BMP (K⁺, HCO₃⁻) · Tolerability review</div><div class="tl-note">Assess acetazolamide tolerability; titrate dose if tolerated and vision risk warrants</div></div></div>
+        <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-time">3 MONTHS</div><div class="tl-dot"></div></div><div class="tl-content"><div class="tl-tests">VA · HVF 24-2 · OCT RNFL · Disc photos · BMI · BMP</div><div class="tl-note">Compare RNFL to baseline — key decision point for escalation vs. continuation</div></div></div>
+        <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-time">6 MONTHS</div><div class="tl-dot"></div></div><div class="tl-content"><div class="tl-tests">Full reassessment + repeat LP OP if not improving · Weight trajectory review</div><div class="tl-note">If RNFL not improving or worsening: escalate dose or refer for surgical consideration</div></div></div>
+        <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-time">ANNUAL</div><div class="tl-dot"></div></div><div class="tl-content"><div class="tl-tests">Full reassessment · Consider medication taper if stable &gt;12 months · RNFL trend graph</div><div class="tl-note">IIH can remit — trial dose reduction in well-controlled patients with sustained weight loss</div></div></div>
+        <div class="tl-item"><div class="tl-dot-wrap"><div class="tl-time">PRN</div><div class="tl-dot" style="background:var(--red);"></div></div><div class="tl-content"><div class="tl-tests" style="color:var(--red);">Any new symptoms → unscheduled visit</div><div class="tl-note">New TVOs, VA change, diplopia, or significantly worsening headache should not wait for scheduled visit</div></div></div>
+      </div>
+    </div>
+
+    <div class="sec">Referral Letter Generator</div>
+    <div class="card">
+      <div class="card-ttl">Generates a structured neuro-ophthalmology referral</div>
+      <div class="g2">
+        <div class="field"><label>Your name / practice</label><input type="text" id="rfFrom" placeholder="Dr. J. Smith OD"></div>
+        <div class="field"><label>Patient identifier (no PHI)</label><input type="text" id="rfPt" placeholder="Initials or MRN only"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Age / sex</label><input type="text" id="rfAge" placeholder="34F"></div>
+        <div class="field"><label>BMI</label><input type="number" id="rfBMI" placeholder="38" inputmode="decimal"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>VA OD</label><input type="text" id="rfVaOD" placeholder="20/25"></div>
+        <div class="field"><label>VA OS</label><input type="text" id="rfVaOS" placeholder="20/20"></div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Disc OD</label>
+          <select id="rfDOD"><option value="">—</option><option>Grade 1 papilledema</option><option>Grade 2 papilledema</option><option>Grade 3 papilledema</option><option>Grade 4 papilledema</option><option>Grade 5 papilledema</option><option>Suspicious elevation</option><option>Normal</option></select>
+        </div>
+        <div class="field"><label>Disc OS</label>
+          <select id="rfDOS"><option value="">—</option><option>Grade 1 papilledema</option><option>Grade 2 papilledema</option><option>Grade 3 papilledema</option><option>Grade 4 papilledema</option><option>Grade 5 papilledema</option><option>Suspicious elevation</option><option>Normal</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Symptoms present</label>
+        <div class="chip-row" id="rfSyms" style="margin-top:4px;">
+          <span class="chip" onclick="this.classList.toggle('on')">Headache</span>
+          <span class="chip" onclick="this.classList.toggle('on')">Pulsatile tinnitus</span>
+          <span class="chip" onclick="this.classList.toggle('on')">TVOs</span>
+          <span class="chip" onclick="this.classList.toggle('on')">Diplopia</span>
+          <span class="chip" onclick="this.classList.toggle('on')">Vision change</span>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Urgency</label>
+          <select id="rfUrg"><option value="routine">Routine (2–4 weeks)</option><option value="urgent">Urgent (1 week)</option><option value="same">Same-day / ER</option></select>
+        </div>
+        <div class="field"><label>LP OP (mm H₂O)</label><input type="number" id="rfOP" placeholder="280" inputmode="numeric"></div>
+      </div>
+      <div class="field"><label>Additional findings</label><input type="text" id="rfExtra" placeholder="OCT RNFL thickened, VF constriction, MRI ordered..."></div>
+      <button class="btn btn-p" style="margin-top:8px;" onclick="genReferral()">Generate referral letter</button>
+      <div id="rfOut"></div>
+    </div>
+
+    <div class="sec">Patient Summary Generator</div>
+    <div class="card">
+      <div class="card-ttl">Plain-language take-home summary for the patient</div>
+      <div class="g2">
+        <div class="field"><label>Patient first name</label><input type="text" id="psName" placeholder="Sarah"></div>
+        <div class="field"><label>Diagnosis</label>
+          <select id="psDx"><option value="confirmed">Confirmed IIH</option><option value="probable">Probable IIH</option><option value="iihwop">IIHWOP</option><option value="monitoring">Under investigation</option></select>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Medication</label>
+          <select id="psActz"><option value="starting">Starting acetazolamide today</option><option value="ongoing">Ongoing acetazolamide</option><option value="topi">On topiramate</option><option value="none">No ICP medication</option></select>
+        </div>
+        <div class="field"><label>Weight counseling</label>
+          <select id="psWt"><option value="yes">Discussed today</option><option value="ref">Referral placed</option><option value="na">Not applicable</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Return to ER warning signs (tap to include)</label>
+        <div class="chip-row" id="psWarns" style="margin-top:4px;">
+          <span class="chip on" onclick="this.classList.toggle('on')">Sudden vision loss</span>
+          <span class="chip on" onclick="this.classList.toggle('on')">Severe worsening headache</span>
+          <span class="chip on" onclick="this.classList.toggle('on')">New double vision</span>
+          <span class="chip" onclick="this.classList.toggle('on')">Weakness or speech change</span>
+          <span class="chip" onclick="this.classList.toggle('on')">Vomiting with headache</span>
+        </div>
+      </div>
+      <button class="btn btn-p" style="margin-top:8px;" onclick="genSummary()">Generate patient summary</button>
+      <div id="psOut"></div>
+    </div>
+
+    <div class="disc">For trained clinicians · IIH Manager v3.0 · Steven C. Quan OD FAAO · UChicago Medicine</div>
+  </div>
+
+</div><!-- end scroll -->
+
+<!-- Tab bar -->
+<div class="tabbar">
+  <button class="tb active" onclick="switchTab('dx',this)"><div class="tb-ic">🔬</div><div class="tb-lb">Diagnose</div></button>
+  <button class="tb" onclick="switchTab('triage',this)"><div class="tb-ic">🚦</div><div class="tb-lb">Triage</div></button>
+  <button class="tb" onclick="switchTab('tx',this)"><div class="tb-ic">💊</div><div class="tb-lb">Treat</div></button>
+  <button class="tb" onclick="switchTab('tracker',this)"><div class="tb-ic">📈</div><div class="tb-lb">Track</div></button>
+  <button class="tb" onclick="switchTab('ref',this)"><div class="tb-ic">📖</div><div class="tb-lb">Reference</div></button>
+</div>
+
+</div><!-- end app -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- About modal -->
+<div class="modal-overlay" id="aboutOverlay" onclick="closeAboutOverlay(event)">
+  <div class="modal">
+    <div class="modal-ttl">IIH Manager — v3.0</div>
+    <div class="modal-sub" style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+      <p><strong>Author:</strong> Steven C. Quan OD FAAO — Assistant Professor of Ophthalmology & Visual Science, University of Chicago Medicine. Program Director, Optometry Residencies & Externships.</p>
+      <p><strong>Purpose:</strong> Point-of-care clinical decision support for optometrists and ophthalmologists managing patients with idiopathic intracranial hypertension. Designed for both experienced neuro-ophthalmologists and general clinicians who encounter IIH less frequently.</p>
+      <p><strong>Clinical basis:</strong> Friedman et al. (Neurology 2013) Modified Dandy Criteria · IIHTT titration protocol · NORDIC IIH guidelines · AAO Preferred Practice Patterns.</p>
+      <p><strong>Data:</strong> The Patient Tracker stores data locally on this device only using browser localStorage. No patient data is transmitted, stored remotely, or shared.</p>
+      <p><strong>Disclaimer:</strong> This tool is intended for use by trained clinicians only. It is a decision support aid and does not replace clinical judgment, formal examination, or specialist consultation. Not validated for autonomous diagnostic use. Not FDA cleared.</p>
+      <p><strong>Install as app:</strong> Open in Safari → Share → Add to Home Screen. Launches full-screen and works offline.</p>
+    </div>
+    <button class="modal-close" onclick="closeAbout()">Close</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// CORE
+// ══════════════════════════════════════
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('scroll').scrollTop = 0;
+  maybeShowOnboard(name);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function showAbout() { document.getElementById('aboutOverlay').classList.add('show'); }
+function closeAbout() { document.getElementById('aboutOverlay').classList.remove('show'); }
+function closeAboutOverlay(e) { if (e.target === e.currentTarget) closeAbout(); }
+
+// Onboarding — show once per tab
+function maybeShowOnboard(tab) {
+  const key = 'iih_ob_' + tab;
+  if (!localStorage.getItem(key)) {
+    const el = document.getElementById('onboard-' + tab);
+    if (el) el.style.display = 'flex';
+  }
+}
+function dismissOnboard(tab) {
+  localStorage.setItem('iih_ob_' + tab, '1');
+  const el = document.getElementById('onboard-' + tab);
+  if (el) el.style.display = 'none';
+}
+// Show onboarding for initial tab
+setTimeout(() => maybeShowOnboard('dx'), 300);
+
+// Copy helper
+// Copy buffer — avoids injecting multiline text into onclick attributes
+let _copyBuf = '';
+
+function copyText(text) {
+  const t = text !== undefined ? text : _copyBuf;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(t).then(() => toast('Copied to clipboard')).catch(() => toast('Long-press text to copy'));
+  } else { toast('Long-press text to copy'); }
+}
+
+// ══════════════════════════════════════
+// DIAGNOSE TAB
+// ══════════════════════════════════════
+
+// Unit converter
+function convertUnit() {
+  const v = parseFloat(document.getElementById('ucIn').value);
+  document.getElementById('ucOut').textContent = isNaN(v) ? '—' : (v * 10).toFixed(0) + ' mm H₂O';
+}
+
+// BMI calculator
+function calcBMI() {
+  const h = parseFloat(document.getElementById('htCm').value);
+  const w = parseFloat(document.getElementById('wtKg').value);
+  const out = document.getElementById('bmiCalcOut');
+  if (isNaN(h) || isNaN(w) || h <= 0) { out.innerHTML = ''; return; }
+  const bmi = w / ((h / 100) ** 2);
+  const cat = bmi >= 40 ? 'Class III obesity' : bmi >= 35 ? 'Class II obesity' : bmi >= 30 ? 'Class I obesity (IIH threshold ≥280 mm H₂O)' : bmi >= 25 ? 'Overweight' : 'Normal weight';
+  const cls = bmi >= 30 ? 'al-a' : 'al-g';
+  out.innerHTML = `<div class="al ${cls}" style="margin-top:8px;"><strong>BMI: ${bmi.toFixed(1)} kg/m²</strong> — ${cat}${bmi >= 30 ? '<br>LP OP threshold: ≥280 mm H₂O' : ''}</div>`;
+  // Auto-populate BMI field
+  document.getElementById('bmi').value = bmi.toFixed(1);
+  updateMeter();
+}
+
+// Pressure meter
+function updateMeter() {
+  const op  = parseFloat(document.getElementById('op').value);
+  const bmi = parseFloat(document.getElementById('bmi').value);
+  const obese = bmi >= 30;
+  const thresh = obese ? 280 : 250;
+  const arc = document.getElementById('mArc');
+  const num = document.getElementById('mNum');
+  const tag = document.getElementById('mTag');
+  const alert = document.getElementById('opAlert');
+
+  if (isNaN(op)) {
+    num.textContent = '—'; tag.className = 'm-tag t-none'; tag.textContent = 'Enter value below';
+    arc.setAttribute('d', 'M 18 92 A 77 77 0 0 1 18 92'); alert.innerHTML = ''; return;
+  }
+  num.textContent = op;
+  const pct = Math.min(op / 400, 1);
+  const angle = pct * Math.PI;
+  const cx = 95, cy = 92, r = 77;
+  const x = cx + r * Math.cos(Math.PI - angle);
+  const y = cy - r * Math.sin(Math.PI - angle);
+  let color = '#087e8b';
+  if (op >= 350) color = '#a8200d';
+  else if (op >= thresh) color = '#b85c00';
+  else if (op >= 200) color = '#b85c00';
+  arc.setAttribute('stroke', color);
+  arc.setAttribute('d', pct < 0.005 ? 'M 18 92 A 77 77 0 0 1 18 92' : `M 18 92 A 77 77 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}`);
+
+  let tc, tt, ah;
+  if (op < 200) {
+    tc='t-norm'; tt='Normal'; ah=`<div class="al al-g"><strong>OP &lt;200 mm H₂O</strong> — within normal limits. IIH LP criterion not met.</div>`;
+  } else if (op < thresh) {
+    tc='t-bord'; tt='Borderline'; ah=`<div class="al al-a"><strong>Below diagnostic threshold</strong> (≥${thresh} mm H₂O${obese?' obese-adjusted':''}). Repeat LP or clinical correlation required.</div>`;
+  } else if (op < 350) {
+    tc='t-elev'; tt='Elevated'; ah=`<div class="al al-a"><strong>Meets IIH LP criterion</strong> (≥${thresh} mm H₂O${obese?' obese-adjusted':''}). Confirm all five Dandy criteria.</div>`;
+  } else {
+    tc='t-elev'; tt='Severely elevated'; ah=`<div class="al al-r"><strong>OP ≥350 mm H₂O</strong> — severely elevated. Consider urgent therapeutic LP. Assess for vision threat immediately.</div>`;
+  }
+  tag.className = 'm-tag ' + tc; tag.textContent = tt; alert.innerHTML = ah;
+}
+
+// Dandy criteria
+function toggleDandy(el) { el.classList.toggle('on'); updateDx(); }
+function updateDx() {
+  const all = document.querySelectorAll('#dandyList .br');
+  const req = [...all].filter(c => c.dataset.type === 'req');
+  const sup = [...all].filter(c => c.dataset.type === 'sup');
+  const rm = req.filter(c => c.classList.contains('on')).length;
+  const sm = sup.filter(c => c.classList.contains('on')).length;
+  const el = document.getElementById('dxResult');
+  if (rm === 0) { el.innerHTML = ''; return; }
+  if (rm === req.length) {
+    el.innerHTML = `<div class="al al-g"><strong>Meets IIH diagnostic criteria</strong> — all 5 required Dandy criteria present. ${sm} supportive feature${sm!==1?'s':''} present.</div>`;
+  } else {
+    let wop = sm >= 3 ? `<div class="al al-t" style="margin-top:6px;"><strong>IIHWOP possible</strong> — ≥3 supportive features present. LP OP confirmation required (or all 3 neuroimaging surrogates: empty sella + globe flattening + bilateral TVS stenosis).</div>` : '';
+    el.innerHTML = `<div class="al al-a"><strong>${rm}/${req.length} required criteria met.</strong> Diagnosis incomplete — address missing criteria.</div>${wop}`;
+  }
+}
+
+// RNFL interpretation
+function interpRNFL() {
+  const od = parseFloat(document.getElementById('rnflOD').value);
+  const os = parseFloat(document.getElementById('rnflOS').value);
+  const ctx = document.getElementById('rnflCtx').value;
+  document.getElementById('rnflBaseFields').style.display = ctx === 'fu' ? 'block' : 'none';
+  const out = document.getElementById('rnflResult');
+  if (isNaN(od) && isNaN(os)) { out.innerHTML = ''; return; }
+
+  const eye = (val, lbl) => {
+    if (isNaN(val)) return '';
+    let cls, state, detail;
+    if (val > 120) { cls='al-t'; state='Thickened — consistent with papilledema'; detail='Elevation supports true disc edema. Pseudopapilledema typically shows normal RNFL despite elevated appearance.'; }
+    else if (val >= 80) { cls='al-g'; state='Within normal limits'; detail = ctx==='iihwop' ? 'Normal RNFL does not exclude IIHWOP — subclinical involvement may be present. LP OP confirmation remains required.' : 'Normal RNFL with disc elevation on exam: consider pseudopapilledema. B-scan and autofluorescence can help differentiate.'; }
+    else { cls='al-r'; state='Thinned — possible atrophy'; detail='RNFL below 80 µm suggests fiber loss, not edema. In IIH this indicates transition from papilledema to optic atrophy — a vision-threatening finding requiring urgent reassessment.'; }
+    return `<div class="al ${cls}"><strong>${lbl}: ${val} µm — ${state}</strong><br>${detail}</div>`;
+  };
+
+  let html = eye(od,'OD') + eye(os,'OS');
+
+  if (ctx === 'fu') {
+    const bOD = parseFloat(document.getElementById('rBaseOD').value);
+    const bOS = parseFloat(document.getElementById('rBaseOS').value);
+    const parts = []; let flagged = false;
+    if (!isNaN(od) && !isNaN(bOD)) { const d = bOD - od; if(d>5){parts.push(`OD: −${d.toFixed(0)} µm ⚠`);flagged=true;} else parts.push(`OD: ${d>0?'−':'+'+(Math.abs(d).toFixed(0))} µm`); }
+    if (!isNaN(os) && !isNaN(bOS)) { const d = bOS - os; if(d>5){parts.push(`OS: −${d.toFixed(0)} µm ⚠`);flagged=true;} else parts.push(`OS: ${d>0?'−':'+'+(Math.abs(d).toFixed(0))} µm`); }
+    if (parts.length) html += flagged
+      ? `<div class="al al-r"><strong>RNFL thinning &gt;5 µm from baseline</strong> — ${parts.join(' · ')} — surgical escalation threshold met.</div>`
+      : `<div class="al al-g"><strong>RNFL within 5 µm threshold</strong> — ${parts.join(' · ')}</div>`;
+  }
+  out.innerHTML = html;
+}
+
+// ══════════════════════════════════════
+// TRIAGE TAB
+// ══════════════════════════════════════
+
+const TS = {};
+function setTriage(k, v, btn) {
+  btn.closest('.tq').querySelectorAll('.topt').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on'); TS[k] = v; calcTriage();
+}
+
+function calcTriage() {
+  const { lat, onset, va, neuro, wu, bp, age: ptAge } = TS;
+  const isPed = ptAge === 'ped';
+
+  // Pediatric note to prepend where relevant
+  const pedNote = isPed ? `<div class="al al-t" style="margin-bottom:8px;"><strong>Pediatric IIH considerations:</strong> Secondary causes are more common in children — iron deficiency anemia, OSA, growth hormone therapy, and steroid withdrawal are key differentials. Obesity is less strongly associated than in adults. LP OP threshold is ≥250 mm H₂O regardless of weight. MRI is mandatory. Co-manage with pediatric neurology.</div>` : '';
+  const out = document.getElementById('triageOut');
+  if (!lat) { out.innerHTML = ''; return; }
+
+  let urg, cls, title, acts=[], ctx='';
+
+  // Malignant hypertension check
+  if (bp === 'htn') {
+    urg='EMERGENCY — RULE OUT HYPERTENSIVE EMERGENCY FIRST'; cls='nr-r';
+    title='Severely elevated BP with disc edema may represent hypertensive emergency — this takes priority over IIH workup.';
+    acts=['Check BP immediately if not already done in past 30 minutes','Systolic >180 or diastolic >120 with end-organ signs → ER immediately','Hypertensive retinopathy with disc edema can mimic IIH — do not assume IIH without BP control','If BP controlled and disc edema persists → proceed with IIH workup'];
+  }
+  // Vision-threatening / focal neuro → same day
+  else if (va==='sev' || neuro==='focal') {
+    urg='SAME-DAY REFERRAL / ER ROUTING'; cls='nr-r';
+    title = neuro==='focal' ? 'New focal neurological deficit with disc edema — rule out intracranial mass before LP.' : 'Vision acutely threatened — immediate intervention required.';
+    acts = neuro==='focal'
+      ? ['MRI brain with contrast before LP — do not perform LP until mass excluded','Call neuro-ophthalmology or neurology same-day','If specialist unavailable: direct ER with your written clinical note','Document VA, VF, disc exam findings before patient leaves your office']
+      : ['Call neuro-ophthalmology or neurology now — do not route via routine referral','If unavailable: direct ER referral with clinical note','Therapeutic LP at presentation if vision actively declining','Document VA, color vision, confrontation VF, and disc grade at this visit'];
+  }
+  // New bilateral disc elevation, no prior workup
+  else if (lat==='bi' && wu==='no') {
+    urg = onset==='acute' ? 'URGENT — same week (consider same-day given acute onset)' : 'URGENT — within 1 week';
+    cls='nr-a';
+    title='New bilateral disc elevation without prior workup — papilledema until proven otherwise.';
+    acts=['Order MRI brain with and without contrast now (MRV if MRI normal)','Refer to neuro-ophthalmology or neurology urgently','Obtain baseline VA, color vision, confrontation VF, and disc photos','Formal HVF 24-2 at this visit or same-day referral for testing','Do not start acetazolamide without LP opening pressure confirmation','Differential: IIH, intracranial mass, venous sinus thrombosis, malignant hypertension'];
+    ctx='Bilateral disc edema is papilledema until the workup proves otherwise. The IIH diagnosis requires excluding all secondary causes first.';
+  }
+  // Unilateral
+  else if (lat==='uni') {
+    urg='URGENT — within 1 week (unilateral pattern)'; cls='nr-a';
+    title='Unilateral disc elevation — IIH is unlikely; broaden the differential.';
+    acts=['Unilateral papilledema suggests: optic neuritis, NAION, CRVO, infiltrative optic neuropathy, or Foster Kennedy syndrome','MRI brain and orbits with contrast is priority imaging','Check BP, ESR/CRP, FBC (rule out GCA if age >50, anemia)','Refer to neuro-ophthalmology urgently','Formal VF 24-2 — pattern helps distinguish disc edema from optic neuropathy'];
+    ctx='Foster Kennedy syndrome (one optic atrophy + one disc edema from frontal lobe mass) can mimic unilateral papilledema — examine the fellow disc carefully.';
+  }
+  // Known IIH, vision declining
+  else if (wu==='yes' && va==='mod') {
+    urg='URGENT REASSESSMENT — vision declining despite treatment'; cls='nr-a';
+    title='Known IIH with worsening VA — escalate management.';
+    acts=['Escalate acetazolamide if not at maximum tolerated dose','Order repeat LP to confirm ICP control','HVF 24-2 urgently — compare serial fields','Refer to neuro-ophthalmology if not already co-managing','Assess RNFL thinning vs. baseline — surgical escalation threshold?'];
+  }
+  // Known IIH, stable
+  else if (wu==='yes') {
+    urg='ROUTINE FOLLOW-UP — continue monitoring'; cls='nr-t';
+    title='Known IIH on treatment — stable presentation.';
+    acts=['Continue current medical management','Document disc grade and compare to prior photos at this visit','OCT RNFL and HVF 24-2 at this visit','Confirm weight trajectory and acetazolamide tolerability','BMP (K⁺, HCO₃⁻) if on acetazolamide','Return in 3 months or sooner if symptoms worsen'];
+  }
+  // No disc elevation
+  else if (lat==='none') {
+    urg='MONITOR — consider IIHWOP if symptomatic'; cls='nr-t';
+    title='No disc elevation on exam.';
+    acts=['If symptomatic (headache, pulsatile tinnitus, TVOs) → consider IIHWOP evaluation','IIHWOP requires LP OP confirmation — refer if symptoms are significant','If completely asymptomatic incidental finding: no urgent action required','Document exam and return precautions in the note'];
+  }
+  // Prior workup, no confirmed dx
+  else {
+    urg='URGENT — re-evaluate with current disc elevation'; cls='nr-a';
+    title='Prior workup without confirmed diagnosis — IIH can emerge or worsen over time.';
+    acts=['Obtain prior LP OP and imaging reports if possible','Repeat LP indicated if prior OP was borderline or below threshold','Current disc elevation may represent interval worsening','Do not assume prior negative workup excludes current IIH — ICP fluctuates'];
+  }
+
+  out.innerHTML = pedNote + `<div class="n-result ${cls}"><span class="nr-lbl">${urg}</span><strong>${title}</strong><ul>${acts.map(a=>`<li>${a}</li>`).join('')}</ul>${ctx?`<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.08); font-size:0.74rem; opacity:0.85;">${ctx}</div>`:''}</div>`;
+}
+
+// Pseudopapilledema
+const trueKeys = new Set(['rnfl_thick','no_svp','hem','bilateral','af_neg','bscan_neg','symptomatic','risk_factors']);
+const falseKeys = new Set(['af_pos','bscan_pos','svp_present','small_cup','asym','asymptomatic']);
+const activeP = new Set();
+
+function togglePseudo(btn, key) {
+  btn.classList.toggle('on');
+  activeP.has(key) ? activeP.delete(key) : activeP.add(key);
+  calcPseudo();
+}
+
+function calcPseudo() {
+  if (activeP.size === 0) { document.getElementById('pseudoOut').innerHTML = ''; return; }
+  let ts=0, fs=0;
+  activeP.forEach(k => { if(trueKeys.has(k)) ts++; if(falseKeys.has(k)) fs++; });
+  const strongTrue  = activeP.has('rnfl_thick') || activeP.has('hem');
+  const strongFalse = activeP.has('af_pos') || activeP.has('bscan_pos');
+
+  let verdict, cls, detail;
+  if (strongFalse && !strongTrue && fs >= 2) {
+    verdict='Pseudopapilledema more likely'; cls='nr-a';
+    detail='Autofluorescence positivity and/or B-scan drusen are the most specific findings for disc drusen. However, drusen and true papilledema can coexist. LP OP is the definitive arbiter — refer for neurological evaluation if IIH risk factors or symptoms are present.<br><br><strong>Next steps:</strong> Fundus autofluorescence; B-scan ultrasound; OCT enhanced depth imaging (EDI) for buried drusen; formal VF.';
+  } else if (strongTrue && !strongFalse && ts >= 3) {
+    verdict='True papilledema more likely'; cls='nr-r';
+    detail='RNFL thickening and/or peripapillary hemorrhages strongly favor true disc edema. Absent SVP in a symptomatic bilateral case is highly suggestive of elevated ICP.<br><br><strong>Next steps:</strong> Urgent neuro-ophthalmology referral. MRI/MRV. LP opening pressure. Do not defer workup pending repeat exam.';
+  } else if (ts > fs) {
+    verdict='Features lean toward true papilledema — workup required'; cls='nr-a';
+    detail='Balance of findings favors true disc edema, but the picture is not definitive. Neuroimaging and LP OP measurement are required — do not manage expectantly without formal workup.<br><br><strong>Next steps:</strong> MRI brain with contrast; neuro-ophthalmology referral; autofluorescence and B-scan if not done.';
+  } else if (fs > ts) {
+    verdict='Features lean toward pseudopapilledema — monitor with caution'; cls='nr-t';
+    detail='More consistent with pseudopapilledema, but workup should not be omitted if the patient is symptomatic or has IIH risk factors. Drusen and IIH are not mutually exclusive.<br><br><strong>Next steps:</strong> Disc photos; autofluorescence; B-scan; OCT EDI. Neuro-ophthalmology referral if any doubt remains.';
+  } else {
+    verdict='Indeterminate — refer for formal evaluation'; cls='nr-a';
+    detail='Mixed findings — cannot favor either diagnosis without further testing. Neuroimaging and neuro-ophthalmology evaluation are warranted.';
+  }
+  document.getElementById('pseudoOut').innerHTML = `<div class="n-result ${cls}"><span class="nr-lbl">LIKELIHOOD ASSESSMENT</span><strong>${verdict}</strong><div style="margin-top:7px; font-size:0.77rem; line-height:1.6;">${detail}</div></div>`;
+}
+
+// Secondary causes
+function calcSecondary() {
+  const checked = document.querySelectorAll('#secList .br.on');
+  const out = document.getElementById('secOut');
+  if (!checked.length) { out.innerHTML = ''; return; }
+  out.innerHTML = `<div class="n-result nr-a"><span class="nr-lbl">SECONDARY CAUSE(S) — ${checked.length} IDENTIFIED</span><strong>Review before finalizing IIH diagnosis:</strong><ul>${[...checked].map(b=>`<li>${b.querySelector('.br-lb').childNodes[0].textContent.trim()}</li>`).join('')}</ul><div style="margin-top:7px; font-size:0.75rem; opacity:0.85; border-top:1px solid rgba(0,0,0,0.08); padding-top:7px;">IIH is a diagnosis of exclusion. Document that secondary causes were systematically reviewed. Evidence strength varies: tetracyclines, retinoids, corticosteroid withdrawal, lithium, and growth hormone have strong causal evidence. Levonorgestrel IUD has a biologically plausible but unconfirmed association — do not remove the device without broader clinical context. OCP is a risk factor for CVT (a mimic), not a confirmed direct IIH cause.</div></div>`;
+}
+
+// ══════════════════════════════════════
+// TREATMENT TAB
+// ══════════════════════════════════════
+
+const txRes = {
+  tn1: {
+    yes: {cls:'nr-r', lbl:'URGENT ACTION', txt:'Fulminant IIH — act immediately.\n\n• Therapeutic LP now: remove CSF to closing pressure 120–150 mm H₂O\n• Start acetazolamide 1g/day concurrently if no contraindications\n• If VA not recovering at 24–48 h → emergent ONSF or CSF shunting\n• Same-day neurosurgery or neuro-ophthalmology consultation\n• Admit if bilateral severe vision loss'},
+    no:  {cls:'nr-t', lbl:'PROCEED TO STEP 2', txt:'Vision not acutely threatened. Continue through the decision tree.'},
+  },
+  tn2: {
+    preg:{cls:'nr-r', lbl:'PREGNANCY PATHWAY', txt:'Acetazolamide is teratogenic (Category D) — AVOID in all trimesters.\n\nFirst trimester:\n• Serial therapeutic LPs are first-line bridge therapy\n• MFM (maternal-fetal medicine) consultation immediately\n• Target LP every 1–3 weeks based on symptom and vision burden\n\nSecond/third trimester:\n• Topiramate may be considered with MFM input\n• ONSF is preferred surgical option if vision threatened\n• VP shunt is high-risk in pregnancy — last resort\n\nPostpartum:\n• Start acetazolamide immediately if not breastfeeding\n• If breastfeeding: topiramate has limited breast milk transfer'},
+    ttc: {cls:'nr-a', lbl:'REPRODUCTIVE CAUTION', txt:'Acetazolamide is teratogenic. If pregnancy is possible:\n\n• Counsel on teratogenicity — document this discussion\n• Ensure reliable contraception before prescribing\n• Consider topiramate if contraception compliance is uncertain (also teratogenic — counsel)\n• Monthly pregnancy testing if starting acetazolamide\n• OB-GYN referral for contraception counseling'},
+    no:  {cls:'nr-t', lbl:'PROCEED TO STEP 3', txt:'No pregnancy considerations. Continue decision tree.'},
+  },
+  tn3: {
+    yes: {cls:'nr-a', lbl:'SULFA ALLERGY — USE ALTERNATIVE', txt:'Acetazolamide is CONTRAINDICATED.\n\nAlternatives in order of evidence:\n\n1. Topiramate 25 mg/day → titrate by 25 mg every 2 weeks → target 100–200 mg/day (BID)\n   — Dual benefit: ICP reduction + weight loss\n   — Monitor: cognitive effects, kidney stones, metabolic acidosis\n   — Also teratogenic — counsel on contraception\n\n2. Furosemide 20–40 mg/day (off-label; weaker evidence base)\n   — Monitor: electrolytes, dehydration\n   — May add spironolactone 25–100 mg/day\n\n3. GLP-1 agonist for weight loss (adjunct, not ICP monotherapy)\n\n4. Therapeutic LP as bridge during transition'},
+    no:  {cls:'nr-t', lbl:'PROCEED TO STEP 4', txt:'No sulfa allergy. Acetazolamide is first-line. Continue.'},
+  },
+  tn4: {
+    norm:{cls:'nr-t', lbl:'STANDARD DOSING', txt:'GFR ≥60 — IIHTT titration protocol:\n\n• Start: 500 mg/day (250 mg BID)\n• Increase by 500 mg every 1–2 weeks as tolerated\n• Standard max: 2000 mg/day\n• IIHTT extended max: 4000 mg/day\n\nMonitoring: BMP at each titration step (K⁺, HCO₃⁻)\nHydration: >2 L/day to reduce nephrolithiasis risk'},
+    mod: {cls:'nr-a', lbl:'DOSE WITH CAUTION — GFR 30–59', txt:'Moderate renal impairment — proceed carefully:\n\n• Start at standard dose 500 mg/day\n• Titrate more slowly (every 3–4 weeks)\n• Consider capping at 2000 mg/day maximum\n• BMP every 2 weeks during titration\n• Watch for metabolic acidosis (HCO₃⁻ <18) and hyperkalemia\n• Aggressive hydration (>2.5 L/day)\n• Nephrology input if creatinine rises during treatment'},
+    low: {cls:'nr-r', lbl:'HIGH RISK — GFR <30', txt:'Severely reduced GFR — acetazolamide relatively contraindicated:\n\n• Risk of severe metabolic acidosis and dangerous K⁺ shifts\n• If benefit outweighs risk: 250–500 mg/day maximum\n• Nephrology co-management required\n• Monitor BMP twice weekly\n• Topiramate at low dose (25–50 mg/day) may be safer\n• Therapeutic LP as primary ICP bridge\n• Low threshold for early surgical escalation'},
+  },
+  tn5: {
+    low: {cls:'nr-t', lbl:'LOW RISK — STANDARD APPROACH', txt:'Standard first-line management:\n\n1. Acetazolamide 500 mg/day → titrate to 2000 mg/day over 6–8 weeks\n2. Weight management referral — target 10% body weight loss\n3. Discuss GLP-1 agonist if BMI ≥30\n4. Neurology co-management for headache\n5. Follow-up 6–8 weeks: VA, HVF, OCT RNFL, BMI, BMP\n6. Therapeutic LP only if symptoms not controlled at follow-up\n\nExpected trajectory: Papilledema improving at 4–8 weeks with adequate acetazolamide + weight loss.'},
+    mod: {cls:'nr-a', lbl:'MODERATE RISK — ACCELERATED APPROACH', txt:'Escalate more aggressively:\n\n1. Acetazolamide — start at 1000 mg/day; target 2000–4000 mg/day within 4 weeks\n2. Therapeutic LP at this visit — do not defer\n3. Weight management referral — urgent\n4. Follow-up in 3–4 weeks (not 6–8): VA, HVF 24-2, OCT RNFL\n5. Low threshold for surgical escalation if no improvement at 4-week visit\n6. Consider low vision referral if VA compromised'},
+  },
+};
+
+function toggleNode(id) { document.getElementById(id).classList.toggle('open'); }
+
+function selectBr(el, nodeId, val) {
+  document.querySelectorAll(`#${nodeId} .br`).forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  const r = txRes[nodeId]?.[val];
+  if (!r) return;
+  document.getElementById('r-'+nodeId).innerHTML = `<div class="n-result ${r.cls}"><span class="nr-lbl">${r.lbl}</span>${r.txt.replace(/\n/g,'<br>')}</div>`;
+}
+
+// Titration
+const STEPS = [
+  {wk:'1–2', dose:500,  sched:'250 mg BID', note:'Starting dose'},
+  {wk:'3–4', dose:1000, sched:'500 mg BID', note:'Increase if tolerated'},
+  {wk:'5–6', dose:1500, sched:'500 mg TID', note:'Check electrolytes'},
+  {wk:'7–8', dose:2000, sched:'1000 mg BID',note:'Standard maximum'},
+  {wk:'9–10',dose:3000, sched:'1000 mg TID',note:'IIHTT extended'},
+  {wk:'11–12',dose:4000,sched:'1000 mg QID',note:'IIHTT maximum'},
+];
+
+function calcTx() {
+  const wt  = parseFloat(document.getElementById('txWt').value);
+  const cur = parseFloat(document.getElementById('txCur').value) || 0;
+  const scr = parseFloat(document.getElementById('txScr').value);
+  const age = parseFloat(document.getElementById('txAge').value) || 45;
+  const str = document.getElementById('txStrat').value;
+  const out = document.getElementById('txOut');
+  if (!wt) { out.innerHTML = ''; return; }
+  const maxD = str==='iihtt' ? 4000 : str==='std' ? 2000 : 1000;
+  const next = STEPS.find(s => s.dose > cur && s.dose <= maxD);
+
+  let gfr = '';
+  if (!isNaN(scr) && scr > 0) {
+    const g = Math.round(186 * Math.pow(scr,-1.154) * Math.pow(age,-0.203));
+    if (g<30) gfr=`<div class="al al-r" style="margin:8px 0;"><strong>Est. GFR ~${g}</strong> — high risk. Consider dose reduction or alternative. Nephrology input recommended.</div>`;
+    else if(g<60) gfr=`<div class="al al-a" style="margin:8px 0;"><strong>Est. GFR ~${g}</strong> — titrate slowly; BMP every 2 weeks.</div>`;
+    else gfr=`<div class="al al-g" style="margin:8px 0;"><strong>Est. GFR ~${g}</strong> — standard dosing appropriate.</div>`;
+  }
+
+  const rows = STEPS.filter(s=>s.dose<=maxD).map(s=>`<tr class="${s.dose===cur||(cur===0&&s.dose===500)?'cur':''}"><td>Wk ${s.wk}</td><td>${s.dose.toLocaleString()} mg</td><td>${s.sched}</td><td>${s.note}</td></tr>`).join('');
+
+  out.innerHTML = `<div style="background:var(--teal-light);border-radius:8px;padding:11px 12px;margin:8px 0;border-left:3px solid var(--teal);">
+    <div style="font-size:0.63rem;font-weight:700;color:var(--teal-mid);margin-bottom:3px;">CURRENT DOSE</div>
+    <span class="bigval t">${cur||'—'}</span> <span class="val-unit">mg/day${next?` → next: ${next.dose.toLocaleString()} mg (${next.sched})`:'  · at maximum dose'}</span>
+  </div>${gfr}
+  <div style="font-size:0.65rem;font-weight:700;color:var(--slate-light);margin:8px 0 5px;letter-spacing:0.06em;">TITRATION SCHEDULE</div>
+  <div style="overflow-x:auto;"><table class="tit-table"><thead><tr><th>Week</th><th>Daily dose</th><th>Schedule</th><th>Notes</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="font-size:0.68rem;color:var(--slate-light);margin-top:8px;line-height:1.5;">Monitor K⁺, HCO₃⁻ at each step · Supplement K⁺ if &lt;3.5 mEq/L · Hydration &gt;2 L/day</div>`;
+}
+
+// Side effects
+const SE = {
+  paresth:  {cls:'nr-t', lbl:'PARESTHESIAS', txt:'Very common (up to 70%) — usually self-limiting within weeks.\n\n• Reassure — does not indicate toxicity or harm\n• Reduce or eliminate caffeine (exacerbates symptoms)\n• Oral potassium bicarbonate may help\n• If severe: hold 1 week then retry at lower dose\n• Does NOT require discontinuation in most cases'},
+  dysgeusia:{cls:'nr-t', lbl:'DYSGEUSIA', txt:'Carbonated beverages taste metallic — nearly universal.\n\n• Counsel proactively before prescribing\n• Not a sign of toxicity; resolves completely with discontinuation\n• Substitute sparkling water with still water, herbal tea, or flavored drinks\n• Offer reassurance — this side effect is annoying but not harmful'},
+  fatigue:  {cls:'nr-a', lbl:'FATIGUE / COGNITIVE SLOWING', txt:'Dose-related. Common at higher doses.\n\n• Evaluate for concurrent hypokalemia or metabolic acidosis (compound fatigue)\n• Morning dosing may help with fatigue timing\n• If vision stable: trial dose reduction by 500 mg — reassess at 2 weeks\n• Consider topiramate switch if fatigue is disabling and persistent\n• Screen for depression (commonly comorbid in chronic IIH)'},
+  hypoK:    {cls:'nr-r', lbl:'HYPOKALEMIA — K⁺ <3.5', txt:'Common and clinically important. Active management required.\n\n• K⁺ 3.0–3.5: Oral KCl 20–40 mEq/day; repeat BMP in 5–7 days\n• K⁺ <3.0: Higher dose oral replacement; repeat BMP in 3–5 days\n• K⁺ <2.5 or symptomatic (cramps, weakness, palpitations): Hold acetazolamide; consider IV; cardiology input\n• Continue supplementation throughout acetazolamide treatment\n• Dietary K⁺: bananas, avocado, potatoes, legumes, spinach\n• Consider spironolactone 25 mg/day as K⁺-sparing adjunct'},
+  acidosis: {cls:'nr-r', lbl:'METABOLIC ACIDOSIS — HCO₃⁻ <18', txt:'Mechanism-driven (carbonic anhydrase inhibition). Severity-graded response.\n\n• HCO₃⁻ 15–18: Monitor; oral sodium bicarbonate 650 mg BID–TID; ensure hydration\n• HCO₃⁻ 12–15: Reduce dose by 500 mg; sodium bicarbonate; repeat BMP in 1 week\n• HCO₃⁻ <12 or symptomatic (Kussmaul breathing, confusion): Hold acetazolamide; nephrology; IV bicarbonate if needed\n• Check GFR — acidosis worsens with declining renal function\n• Compensatory hyperventilation may develop chronically'},
+  stones:   {cls:'nr-a', lbl:'NEPHROLITHIASIS', txt:'Increased risk via urinary alkalinization and reduced citrate excretion.\n\n• Aggressive hydration — minimum 2.5 L/day; track urine color (pale yellow target)\n• Potassium citrate 10–20 mEq BID (alkalinizes urine, reduces calcium oxalate)\n• Avoid high-oxalate foods if calcium oxalate stones (spinach, nuts, chocolate)\n• Urology referral if symptomatic stone on imaging\n• Recurrent stones: weigh continuation risk vs. switch to topiramate or furosemide'},
+  allergy:  {cls:'nr-r', lbl:'HYPERSENSITIVITY — DISCONTINUE', txt:'Sulfonamide hypersensitivity — stop immediately.\n\n• Discontinue acetazolamide now\n• Document as sulfa allergy in chart — formal allergy entry\n• Treat reaction as indicated (antihistamine; steroids if severe; epinephrine if anaphylaxis)\n• Do NOT rechallenge — risk of more severe reaction\n\nSwitch to:\n1. Topiramate 25 mg/day → titrate to 100–200 mg/day\n2. Furosemide 20–40 mg/day\n3. Therapeutic LP as bridge during transition'},
+};
+
+const activeSE = new Set();
+function toggleSE(btn, key) {
+  btn.classList.toggle('on');
+  activeSE.has(key) ? activeSE.delete(key) : activeSE.add(key);
+  const out = document.getElementById('seOut');
+  if (!activeSE.size) { out.innerHTML = ''; return; }
+  out.innerHTML = [...activeSE].map(k => {
+    const r = SE[k];
+    return `<div class="n-result ${r.cls}" style="margin-bottom:8px;"><span class="nr-lbl">${r.lbl}</span>${r.txt.replace(/\n/g,'<br>')}</div>`;
+  }).join('');
+}
+
+// Accordion (surgical + Frisén)
+function toggleAcc(id) { document.getElementById(id).classList.toggle('open'); }
+
+// RNFL delta calculator
+function calcDelta() {
+  const bOD=parseFloat(document.getElementById('sBaseOD').value);
+  const cOD=parseFloat(document.getElementById('sCurrOD').value);
+  const bOS=parseFloat(document.getElementById('sBaseOS').value);
+  const cOS=parseFloat(document.getElementById('sCurrOS').value);
+  const out=document.getElementById('deltaOut');
+  if ((isNaN(bOD)||isNaN(cOD)) && (isNaN(bOS)||isNaN(cOS))) { out.innerHTML=''; return; }
+
+  let rows='', flagged=false;
+  const eye=(base,curr,lbl)=>{
+    if(isNaN(base)||isNaN(curr)) return '';
+    const d=base-curr, abs=Math.abs(d).toFixed(0);
+    let col; if(d>5){col='var(--red)';flagged=true;} else if(d>0) col='var(--amber)'; else col='var(--green)';
+    return `<div class="delta-row"><span class="delta-lbl" style="color:var(--navy);">${lbl}</span><span class="delta-val" style="color:${col};">${d>0?'−':'+'}${abs} µm${d>5?' ⚠':''}</span></div>`;
+  };
+  rows=eye(bOD,cOD,'OD')+eye(bOS,cOS,'OS');
+  const verdict = flagged
+    ? `<div class="al al-r"><strong>Surgical escalation threshold met</strong> — RNFL thinning &gt;5 µm from baseline. This criterion alone warrants surgical referral discussion regardless of VA or VF status.</div>`
+    : `<div class="al al-g">RNFL change within 5 µm threshold — continue medical management with serial monitoring.</div>`;
+  out.innerHTML=`<div style="background:var(--surface);border-radius:8px;padding:4px 10px;margin-bottom:8px;">${rows}</div>${verdict}`;
+}
+
+// ══════════════════════════════════════
+// TRACKER TAB
+// ══════════════════════════════════════
+
+let curPt = null;
+function getPts() { try { return JSON.parse(localStorage.getItem('iih_v3')||'{}'); } catch { return {}; } }
+function savePts(p) { localStorage.setItem('iih_v3', JSON.stringify(p)); }
+
+function newPt() {
+  const id='IIH-'+Date.now().toString().slice(-4);
+  document.getElementById('ptId').value=id;
+  curPt=id;
+  const p=getPts(); p[id]=[]; savePts(p);
+  renderTracker();
+}
+function loadPt() { curPt=document.getElementById('ptId').value.trim()||null; renderTracker(); }
+
+function renderTracker() {
+  const el=document.getElementById('trackerContent');
+  if(!curPt){el.innerHTML='<div class="empty"><div class="empty-ic">📋</div>Enter a patient ID above to begin</div>';return;}
+  const pts=getPts(), visits=pts[curPt]||[];
+
+  const addForm=`<div class="card" style="margin-bottom:10px;">
+    <div class="card-ttl">Add visit — ${curPt}</div>
+    <div class="g2">
+      <div class="field"><label>Date</label><input type="date" id="vDate"></div>
+      <div class="field"><label>Weight (kg)</label><input type="number" id="vWt" placeholder="95" inputmode="decimal"></div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>VA OD</label><input type="text" id="vVaOD" placeholder="20/20"></div>
+      <div class="field"><label>VA OS</label><input type="text" id="vVaOS" placeholder="20/20"></div>
+      <div class="field"><label>LP OP (mmH₂O)</label><input type="number" id="vOP" placeholder="280" inputmode="numeric"></div>
+    </div>
+    <div class="g3">
+      <div class="field"><label>RNFL OD (µm)</label><input type="number" id="vROD" placeholder="118" inputmode="numeric"></div>
+      <div class="field"><label>RNFL OS (µm)</label><input type="number" id="vROS" placeholder="122" inputmode="numeric"></div>
+      <div class="field"><label>Actz (mg/d)</label><input type="number" id="vActz" placeholder="1000" step="250" inputmode="numeric"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Papilledema</label>
+        <select id="vPap" aria-label="Papilledema grade"><option value="">—</option><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Trace</option><option>Resolved</option></select>
+      </div>
+      <div class="field"><label>GHT OD/OS</label>
+        <select id="vGHT" aria-label="GHT"><option value="">—</option><option>WNL/WNL</option><option>WNL/ONL</option><option>ONL/WNL</option><option>ONL/ONL</option><option>Borderline</option></select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>VF MD OD (dB)</label><input type="number" id="vMDOD" placeholder="-2.1" step="0.1" inputmode="decimal" aria-label="VF mean deviation OD"></div>
+      <div class="field"><label>VF MD OS (dB)</label><input type="number" id="vMDOS" placeholder="-1.8" step="0.1" inputmode="decimal" aria-label="VF mean deviation OS"></div>
+    </div>
+    <div class="field"><label>Notes</label><input type="text" id="vNotes" placeholder="Headaches improved, tolerating medication..." aria-label="Visit notes"></div>
+    <button class="btn btn-p" style="margin-top:4px;" onclick="addVisit()" aria-label="Save visit">Save visit</button>
+  </div>`;
+
+  if(!visits.length){
+    el.innerHTML=addForm+'<div class="empty"><div class="empty-ic">📊</div>No visits yet for '+curPt+'</div>';
+    document.getElementById('vDate').value=new Date().toISOString().split('T')[0];
+    return;
+  }
+
+  // Trend charts
+  const chartBlock = buildCharts(visits);
+
+  // Visit cards
+  const base=visits[0];
+  const cards=[...visits].reverse().map((v,i,arr)=>{
+    const prev=arr[i+1];
+    const op=parseFloat(v.op);
+    const rod=parseFloat(v.rod), ros=parseFloat(v.ros);
+    const brod=parseFloat(base?.rod), bros=parseFloat(base?.ros);
+    const opCls=isNaN(op)?'':op>=280?'hi':op<250?'lo':'';
+    const tw=(a,b,lower)=>{const na=parseFloat(a),nb=parseFloat(b);if(isNaN(na)||isNaN(nb))return'';return na<nb?(lower?'↓':'↑'):na>nb?(lower?'↑':'↓'):'→';};
+
+    let rnflAlert='';
+    const isBase=v===base;
+    if(!isBase&&!isNaN(rod)&&!isNaN(brod)){
+      const dOD=brod-rod, dOS=!isNaN(ros)&&!isNaN(bros)?bros-ros:null;
+      if(dOD>5||(dOS!==null&&dOS>5)){
+        const parts=[];
+        if(dOD>5) parts.push(`OD −${dOD.toFixed(0)} µm`);
+        if(dOS!==null&&dOS>5) parts.push(`OS −${dOS.toFixed(0)} µm`);
+        rnflAlert=`<div style="padding:0 12px 8px;"><div class="al al-r" style="font-size:0.71rem;"><strong>⚠ RNFL thinning &gt;5 µm from baseline</strong> — ${parts.join(', ')} — surgical escalation criterion met</div></div>`;
+      }
+    }
+
+    const pills=[
+      v.wt?`<span class="vpill">${v.wt} kg ${tw(v.wt,prev?.wt,true)}</span>`:'',
+      v.vaOD?`<span class="vpill">OD ${v.vaOD}</span>`:'',
+      v.vaOS?`<span class="vpill">OS ${v.vaOS}</span>`:'',
+      !isNaN(op)?`<span class="vpill ${opCls}">${op} mmH₂O</span>`:'',
+      v.actz?`<span class="vpill">${v.actz} mg</span>`:'',
+      v.pap?`<span class="vpill">${v.pap}</span>`:'',
+      !isNaN(rod)?`<span class="vpill ${rod<80?'hi':rod>120?'lo':''}" title="RNFL OD">OD ${rod}µm${tw(rod,parseFloat(prev?.rod),true)}</span>`:'',
+      !isNaN(ros)?`<span class="vpill ${ros<80?'hi':ros>120?'lo':''}" title="RNFL OS">OS ${ros}µm${tw(ros,parseFloat(prev?.ros),true)}</span>`:'',
+      v.ght?`<span class="vpill">GHT ${v.ght}</span>`:'',
+      v.mdOD?`<span class="vpill">MD OD ${parseFloat(v.mdOD)>0?'+':''}${v.mdOD}dB</span>`:'',
+      v.mdOS?`<span class="vpill">MD OS ${parseFloat(v.mdOS)>0?'+':''}${v.mdOS}dB</span>`:'',
+    ].filter(Boolean).join('');
+
+    return `<div class="visit-card">
+      <div class="visit-top">
+        <div class="visit-date">${v.date||'—'}${isBase?'<br><span style="font-size:0.58rem;font-weight:700;color:var(--teal-mid);">BASELINE</span>':''}</div>
+        <div class="visit-pills">${pills}</div>
+      </div>
+      ${rnflAlert}
+      ${v.notes?`<div class="visit-note">${v.notes}</div>`:''}
+    </div>`;
+  }).join('');
+
+  el.innerHTML=addForm+chartBlock+cards+`<div class="btn-row" style="margin-top:6px;"><button class="btn btn-g btn-sm" onclick="exportCSV()" aria-label="Export CSV">Export CSV</button><button class="btn btn-g btn-sm" style="color:var(--red);border-color:var(--red);" onclick="deletePt()" aria-label="Delete patient">Delete ${curPt}</button></div>`;
+  document.getElementById('vDate').value=new Date().toISOString().split('T')[0];
+  drawCharts(visits);
+}
+
+function buildCharts(visits) {
+  if(visits.length<2) return '';
+  return `<div class="chart-wrap" style="margin-bottom:10px;">
+    <div class="chart-ttl">LP Opening Pressure & Weight Trend</div>
+    <canvas id="chartOP" height="120"></canvas>
+  </div>
+  <div class="chart-wrap" style="margin-bottom:10px;">
+    <div class="chart-ttl">RNFL Trend (µm) — OD & OS</div>
+    <canvas id="chartRNFL" height="120"></canvas>
+  </div>`;
+}
+
+function drawCharts(visits) {
+  drawLineChart('chartOP', visits, [
+    {key:'op', label:'LP OP (mmH₂O)', color:'#a8200d'},
+    {key:'wt', label:'Weight (kg)', color:'#087e8b'},
+  ]);
+  drawLineChart('chartRNFL', visits, [
+    {key:'rod', label:'RNFL OD (µm)', color:'#087e8b'},
+    {key:'ros', label:'RNFL OS (µm)', color:'#b85c00'},
+  ]);
+}
+
+function drawLineChart(canvasId, visits, series) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 360, H = 120;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  const pad = { t:8, r:12, b:28, l:36 };
+  const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+  const labels = visits.map(v => v.date ? v.date.slice(5) : '');
+  const n = visits.length;
+
+  // gather all values for scale
+  let allVals = [];
+  series.forEach(s => visits.forEach(v => { const x=parseFloat(v[s.key]); if(!isNaN(x)) allVals.push(x); }));
+  if (!allVals.length) return;
+  let minV = Math.min(...allVals), maxV = Math.max(...allVals);
+  const range = maxV - minV || 1;
+  minV -= range*0.1; maxV += range*0.1;
+
+  const xPos = i => pad.l + (n<=1 ? cW/2 : i/(n-1)*cW);
+  const yPos = v => pad.t + cH - ((v-minV)/(maxV-minV)*cH);
+
+  // Grid
+  ctx.strokeStyle = '#dde4ed'; ctx.lineWidth = 0.8;
+  for (let i=0;i<=4;i++) {
+    const y = pad.t + cH*(i/4);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+cW, y); ctx.stroke();
+    ctx.fillStyle='#8fa3b8'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText(Math.round(maxV - (maxV-minV)*(i/4)), pad.l-3, y+3);
+  }
+
+  // X labels
+  ctx.fillStyle='#8fa3b8'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='center';
+  visits.forEach((v,i) => { if(n<=6||i%(Math.ceil(n/5))===0) ctx.fillText(labels[i], xPos(i), H-5); });
+
+  // Series lines
+  series.forEach(s => {
+    const pts = visits.map((v,i) => ({i, val:parseFloat(v[s.key])})).filter(p=>!isNaN(p.val));
+    if(pts.length<1) return;
+    ctx.strokeStyle=s.color; ctx.lineWidth=2; ctx.lineJoin='round';
+    ctx.beginPath();
+    pts.forEach((p,j) => { j===0 ? ctx.moveTo(xPos(p.i), yPos(p.val)) : ctx.lineTo(xPos(p.i), yPos(p.val)); });
+    ctx.stroke();
+    ctx.fillStyle=s.color;
+    pts.forEach(p => { ctx.beginPath(); ctx.arc(xPos(p.i), yPos(p.val), 3, 0, Math.PI*2); ctx.fill(); });
+  });
+
+  // Legend
+  let lx = pad.l;
+  series.forEach(s => {
+    ctx.fillStyle=s.color; ctx.fillRect(lx, 0, 8, 8);
+    ctx.fillStyle='#607488'; ctx.font='8px Inter,sans-serif'; ctx.textAlign='left';
+    ctx.fillText(s.label, lx+10, 8); lx += ctx.measureText(s.label).width + 24;
+  });
+}
+
+function addVisit() {
+  if(!curPt){toast('Enter a patient ID first');return;}
+  const d=document.getElementById('vDate').value;
+  if(!d){toast('Date required');return;}
+  const pts=getPts();
+  if(!pts[curPt]) pts[curPt]=[];
+  pts[curPt].push({
+    date:d, wt:document.getElementById('vWt').value,
+    vaOD:document.getElementById('vVaOD').value, vaOS:document.getElementById('vVaOS').value,
+    op:document.getElementById('vOP').value,
+    rod:document.getElementById('vROD').value, ros:document.getElementById('vROS').value,
+    actz:document.getElementById('vActz').value,
+    pap:document.getElementById('vPap').value, ght:document.getElementById('vGHT').value,
+    mdOD:document.getElementById('vMDOD').value, mdOS:document.getElementById('vMDOS').value,
+    notes:document.getElementById('vNotes').value,
+  });
+  pts[curPt].sort((a,b)=>a.date.localeCompare(b.date));
+  savePts(pts); toast('Visit saved'); renderTracker();
+}
+
+function deletePt() {
+  if(!curPt||!confirm(`Delete all data for ${curPt}?`)) return;
+  const p=getPts(); delete p[curPt]; savePts(p);
+  curPt=null; document.getElementById('ptId').value=''; renderTracker();
+}
+
+// ══════════════════════════════════════
+// REFERENCE TAB
+// ══════════════════════════════════════
+
+function genReferral() {
+  const from=document.getElementById('rfFrom').value||'Referring Clinician';
+  const pt=document.getElementById('rfPt').value||'[Patient]';
+  const age=document.getElementById('rfAge').value||'—';
+  const bmi=document.getElementById('rfBMI').value;
+  const vaOD=document.getElementById('rfVaOD').value||'not recorded';
+  const vaOS=document.getElementById('rfVaOS').value||'not recorded';
+  const dOD=document.getElementById('rfDOD').value||'not graded';
+  const dOS=document.getElementById('rfDOS').value||'not graded';
+  const urg=document.getElementById('rfUrg').value;
+  const op=document.getElementById('rfOP').value;
+  const extra=document.getElementById('rfExtra').value;
+  const syms=[...document.querySelectorAll('#rfSyms .chip.on')].map(c=>c.textContent).join(', ')||'None documented';
+  const urgTxt=urg==='same'?'SAME-DAY / EMERGENCY':urg==='urgent'?'URGENT — within 1 week':'Routine — within 2–4 weeks';
+
+  const letter=`Dear Colleague,
+
+Thank you for seeing this patient referred for evaluation of suspected papilledema and possible idiopathic intracranial hypertension (IIH).
+
+PATIENT: ${pt}
+Age/Sex: ${age}${bmi?` | BMI: ${bmi} kg/m²`:''}
+REFERRAL URGENCY: ${urgTxt}
+
+CLINICAL FINDINGS
+  Visual acuity:  OD ${vaOD}  |  OS ${vaOS}
+  Optic disc:     OD — ${dOD}  |  OS — ${dOS}
+  LP OP:          ${op?op+' mm H₂O':'Not yet obtained'}
+  Symptoms:       ${syms}
+  ${extra?'Additional: '+extra:''}
+
+REASON FOR REFERRAL
+Formal evaluation is requested including LP opening pressure measurement, neuroimaging review, and Dandy criteria assessment to confirm or exclude idiopathic intracranial hypertension.
+${urg==='same'?'\nURGENT NOTE: Vision is acutely threatened and/or new neurological findings are present. Same-day evaluation is requested. If unavailable today, I am routing this patient to the emergency department.\n':''}
+Please feel free to contact me with any questions.
+
+${from}
+[IIH Manager · Clinical Decision Support]`;
+
+  document.getElementById('rfOut').innerHTML=`<div class="output-box">${letter}</div><div class="btn-row" style="margin-top:8px;"><button class="btn btn-g btn-sm" onclick="_copyBuf=window._rfLetter;copyText()" aria-label="Copy letter">Copy letter</button><button class="btn btn-g btn-sm" onclick="printRef()" aria-label="Print letter">Print / Share</button></div>`;
+  window._rfLetter = letter;
+}
+
+function genSummary() {
+  const name=document.getElementById('psName').value||'You';
+  const dx=document.getElementById('psDx').value;
+  const actz=document.getElementById('psActz').value;
+  const wt=document.getElementById('psWt').value;
+  const warns=[...document.querySelectorAll('#psWarns .chip.on')].map(c=>c.textContent);
+
+  const dxTxt={confirmed:'idiopathic intracranial hypertension (IIH)',probable:'possible idiopathic intracranial hypertension (IIH) — your workup is in progress',iihwop:'IIH without papilledema (IIHWOP) — a form of IIH where the spinal fluid pressure is elevated but your optic nerves do not show visible swelling',monitoring:'optic disc swelling that we are investigating — more testing is needed to determine the cause'}[dx];
+
+  const actzTxt={starting:`You are starting a medication called acetazolamide (Diamox) today. It helps reduce the fluid pressure around your brain. Take it as prescribed and drink plenty of water — at least 8 glasses a day. You may notice tingling in your hands and feet and a change in the taste of carbonated drinks. These are common and not dangerous. Call us if you develop a rash, difficulty breathing, or muscle weakness.`,ongoing:`Continue taking acetazolamide (Diamox) as directed. If you notice worsening side effects — tingling, fatigue, or taste changes — please let us know before stopping the medication.`,topi:`You are taking topiramate to help reduce the pressure. Take it as prescribed. Report any cognitive side effects, tingling, or mood changes to your doctor.`,none:`You are not on pressure-reducing medication at this time. Your visual risk is currently low and we are focusing on other aspects of treatment.`}[actz];
+
+  const wtTxt={yes:`Weight loss is one of the most powerful treatments for IIH. Even losing 10% of your body weight can significantly reduce the pressure around your brain and may allow us to reduce or stop medication. Small consistent changes add up — you do not need to lose it all at once.`,ref:`You have been referred to a weight management clinic. This is an important part of your IIH treatment, not just general health advice. Please follow through with that appointment.`,na:''}[wt];
+
+  const warnTxt=warns.length?`Return to the emergency room immediately or call 911 if you experience:\n${warns.map(w=>`  • ${w}`).join('\n')}`:'' ;
+
+  const txt=`IIH — WHAT YOU NEED TO KNOW
+Prepared for: ${name}
+
+YOUR DIAGNOSIS
+${name}, you have been diagnosed with ${dxTxt}.
+
+IIH means the pressure of the fluid around your brain and spinal cord is higher than normal. This can cause headaches, changes in your vision, and a whooshing sound in your ears. With proper treatment, most people with IIH are able to protect their vision and manage their symptoms effectively.
+
+YOUR MEDICATION
+${actzTxt}
+
+${wtTxt?`WEIGHT AND IIH\n${wtTxt}\n`:''}YOUR FOLLOW-UP APPOINTMENT
+Please keep your follow-up appointment. We will check your vision, examine your optic nerves, and review how your treatment is working. Write down any questions you have before the visit.
+
+${warnTxt?`WHEN TO SEEK EMERGENCY CARE\n${warnTxt}\n`:''}If you have any questions before your next appointment, please call our office.`;
+
+
+  document.getElementById('psOut').innerHTML=`<div class="output-box">${txt}</div><button class="btn btn-g btn-sm" style="margin-top:8px;" onclick="_copyBuf=window._psTxt;copyText()">Copy summary</button>`;
+  window._psTxt = txt;
+}
+
+// ── Reset Dandy criteria ──
+function resetDandy() {
+  document.querySelectorAll('#dandyList .br').forEach(b => b.classList.remove('on'));
+  document.getElementById('dxResult').innerHTML = '';
+}
+
+// ── LP Timing module ──
+const lpqData = {
+  threat: {
+    cls:'nr-r', lbl:'Q1 — VISION THREATENED',
+    txt:'Therapeutic LP indicated urgently.\n\n• Remove CSF to closing pressure 120–150 mm H₂O\n• Do not wait for specialist availability — arrange same-day\n• If fulminant (Grade 4–5, acute VA loss): admit; LP immediately followed by acetazolamide\n• Measure and document opening AND closing pressure\n• Monitor VA and VF at 24–48 hours post-procedure\n• Simultaneously assess need for ONSF or shunt — LP is a bridge, not definitive treatment if vision is acutely threatened'
+  },
+  dx: {
+    cls:'nr-a', lbl:'Q2 — DIAGNOSTIC LP NEEDED',
+    txt:'LP OP not yet confirmed or is outdated — diagnostic LP required.\n\nUrgency based on clinical trajectory:\n• Stable, no vision change → schedule via neurology within 2–4 weeks\n• Worsening symptoms or new papilledema → expedite within 1 week\n• Current papilledema without prior OP → urgent within 1 week\n\nKey points:\n• Do not start acetazolamide without confirmed elevated OP (except in vision-threatening cases)\n• LP OP from >12 months ago with interval clinical change is not adequate\n• Order MRI/MRV before LP if not already obtained\n• Target closing pressure 120–150 mm H₂O'
+  },
+  fail: {
+    cls:'nr-t', lbl:'Q3 — BRIDGING THERAPEUTIC LP',
+    txt:'Medical management inadequate — LP as bridge while reassessing treatment.\n\nIndications for bridging LP:\n• Maximal acetazolamide dose reached but symptoms persist\n• Intolerant to all medical therapies\n• Waiting for surgical referral\n• Breakthrough symptoms between scheduled visits\n\nAfter bridging LP:\n• If symptoms recur within 2–4 weeks → strongly consider surgical escalation\n• Repeated therapeutic LPs (>3) without remission = inadequate long-term strategy\n• Document number of LPs performed — frequency informs surgical timing\n• Target closing pressure 120–150 mm H₂O'
+  }
+};
+
+function showLPQ(key) {
+  const r = lpqData[key];
+  document.querySelectorAll('[id^="lpq-"]').forEach(el => el.style.opacity = '0.5');
+  document.getElementById('lpq-'+key).style.opacity = '1';
+  document.getElementById('lpqOut').innerHTML = `<div class="n-result ${r.cls}"><span class="nr-lbl">${r.lbl}</span>${r.txt.replace(/\n/g,'<br>')}</div>`;
+}
+
+// ── Patient list ──
+function showPtList() {
+  const pts = getPts();
+  const ids = Object.keys(pts);
+  const out = document.getElementById('ptListOut');
+  if (!ids.length) { out.innerHTML = '<div class="al al-t" style="margin-bottom:8px;">No patients saved yet. Tap "+ New" to create one.</div>'; return; }
+  out.innerHTML = `<div class="card" style="margin-bottom:10px;">
+    <div class="card-ttl">Saved patients (${ids.length})</div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      ${ids.map(id => {
+        const v = pts[id] || [];
+        const last = v.length ? v[v.length-1].date : 'no visits';
+        return `<div class="br" onclick="selectPt('${id}')" aria-label="Select patient ${id}">
+          <div class="br-dot"></div>
+          <div class="br-lb">${id}<span class="br-sub">${v.length} visit${v.length!==1?'s':''} · last: ${last}</span></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <button class="btn btn-g btn-sm" style="margin-top:10px;" onclick="document.getElementById('ptListOut').innerHTML=''">Close list</button>
+  </div>`;
+}
+
+function selectPt(id) {
+  document.getElementById('ptId').value = id;
+  curPt = id;
+  document.getElementById('ptListOut').innerHTML = '';
+  renderTracker();
+}
+
+// ── CSV export ──
+function exportCSV() {
+  if (!curPt) return;
+  const pts = getPts();
+  const visits = pts[curPt] || [];
+  if (!visits.length) { toast('No visits to export'); return; }
+  const headers = ['Date','Weight_kg','VA_OD','VA_OS','LP_OP_mmH2O','RNFL_OD_um','RNFL_OS_um','Acetazolamide_mgd','Papilledema','GHT','VF_MD_OD_dB','VF_MD_OS_dB','Notes'];
+  const rows = visits.map(v => [
+    v.date||'', v.wt||'', v.vaOD||'', v.vaOS||'', v.op||'',
+    v.rod||'', v.ros||'', v.actz||'', v.pap||'', v.ght||'',
+    v.mdOD||'', v.mdOS||'',
+    (v.notes||'').replace(/,/g,';')
+  ].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${curPt}_IIH_tracker.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV downloaded');
+}
+
+// ── Print referral ──
+function printRef() {
+  if (!window._rfLetter) { toast('Generate a letter first'); return; }
+  const w = window.open('','_blank','width=700,height=900');
+  w.document.write(`<html><head><title>IIH Referral Letter</title><style>body{font-family:Arial,sans-serif;font-size:13px;line-height:1.7;padding:40px;white-space:pre-wrap;}</style></head><body>${window._rfLetter.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
+
+// ── Update addVisit VF MD capture ──
+const _origAddVisit = addVisit;
+
+// ── VF MD pills in visit render (patch renderTracker visit pills) ──
+// MD fields are included in the visit object via addVisit; pills display if present
+
+</script>
+</body>
+</html>
